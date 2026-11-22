@@ -270,3 +270,24 @@ Being explicit about what is **not** implemented yet:
 ## License
 
 [MIT](LICENSE)
+
+## Verified behaviour
+
+The following flows are covered by automated tests and were verified against the running webview:
+
+| Flow | Verified by |
+| ---- | ----------- |
+| GET/POST/PUT with headers, params and JSON bodies | `test/integration/http.test.ts` |
+| Variable resolution from the active environment | `test/integration/http.test.ts` |
+| Blocked private addresses when disabled | `test/integration/http.test.ts` |
+| HTTP error statuses surfaced without throwing | `test/integration/http.test.ts` |
+| `pm.test` / `pm.expect` chains incl. `to.be.an.array` | `test/unit/assertions.test.ts` |
+| Gzip decoding, redirect chains, response timing | `test/integration/http.test.ts` |
+| Postman / OpenAPI / cURL import, sanitised export | `test/integration/import.test.ts` |
+| Collection, folder and request lifecycle | `test/integration/import.test.ts` |
+| History recording and clearing | `test/integration/import.test.ts` |
+| URL validation, protocol and host policy | `test/unit/url.test.ts` |
+| Secret redaction and header masking | `test/unit/security.test.ts` |
+| New request → send → close tab → welcome state | UI harness (manual + screenshots) |
+| WebSocket connect, echo round-trip, log | UI harness (manual + screenshots) |
+| Settings persistence from the dialog | UI harness (manual) |

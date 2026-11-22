@@ -143,6 +143,15 @@ class HostBridge {
 
 const bridge = new HostBridge();
 
+// A dropped long-poll connection must never consume a message: the browser retries immediately
+// with a new request, so handing the message to a dead response would stall the page.
+process.on('uncaughtException', (error) => {
+  if (error && (error.code === 'ERR_STREAM_DESTROYED' || /write after end/i.test(error.message ?? ''))) {
+    return;
+  }
+  process.stderr.write(`harness error: ${error && error.stack ? error.stack : error}\n`);
+});
+
 /* --------------------------------- server --------------------------------- */
 
 function safeJoin(base, target) {
