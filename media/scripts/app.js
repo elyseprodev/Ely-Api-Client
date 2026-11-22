@@ -275,6 +275,8 @@
 
   function collectionMenu(anchor, collection) {
     UI.showMenu(anchor, [
+      { label: 'Run collection', hint: 'Tests', onSelect: () => openRunner(collection.id) },
+      { separator: true },
       { label: 'Open in new tab', onSelect: () => newRequestIn(collection.id, null) },
       { label: 'New folder', onSelect: () => createFolder(collection.id, null) },
       { label: 'Rename collection', hint: 'F2', onSelect: () => renameCollection(collection) },
@@ -288,6 +290,8 @@
 
   function folderMenu(anchor, folder) {
     UI.showMenu(anchor, [
+      { label: 'Run folder', hint: 'Tests', onSelect: () => openRunner(folder.collectionId, folder.id) },
+      { separator: true },
       { label: 'New request here', onSelect: () => newRequestIn(folder.collectionId, folder.id) },
       { label: 'New subfolder', onSelect: () => createFolder(folder.collectionId, folder.id) },
       { label: 'Rename folder', onSelect: () => renameFolder(folder) },
@@ -573,7 +577,8 @@
     renderTabs();
     // The environment manager replaces the whole pane; opening a request must bring the editor
     // back into view instead of leaving the user on the manager.
-    if (state.section === 'environments' || state.websocketOpen) {
+    if (state.section === 'environments' || state.websocketOpen || state.runnerOpen) {
+      state.runnerOpen = false;
       selectSection('collections');
     }
     renderWorkspace();
@@ -601,11 +606,20 @@
     // The environment manager owns the main pane while its rail section is selected.
     const showEnvironments = state.section === 'environments' && !state.websocketOpen;
     if (environments) environments.hidden = !showEnvironments;
+    const runner = $('#runner-workspace');
+    if (runner) runner.hidden = !state.runnerOpen;
     if (showEnvironments) {
       welcome.hidden = true;
       workspace.hidden = true;
       websocket.hidden = true;
       renderEnvironmentManager();
+      return;
+    }
+    if (state.runnerOpen) {
+      welcome.hidden = true;
+      workspace.hidden = true;
+      websocket.hidden = true;
+      renderRunnerWorkspace();
       return;
     }
     if (state.websocketOpen) {
@@ -2628,6 +2642,38 @@
           if (doc) doc.hasSecret = Boolean(message.payload.hasSecret);
           break;
         }
+        case 'run:progress':
+          // Progress is only meaningful for the run the user started in this session.
+          if (state.runnerOpen) {
+            state.run = message.payload.run;
+            renderRunnerWorkspace();
+          }
+          break;
+        case 'run:finished':
+          if (state.runnerOpen) {
+            if (message.payload.error) {
+              state.run = null;
+              renderRunnerWorkspace();
+              UI.toast(message.payload.error.message || 'The run failed to start.', 'error');
+            } else {
+              state.run = message.payload.run;
+              renderRunnerWorkspace();
+              const run = state.run;
+              UI.toast(
+                run.failedRequests + run.erroredRequests === 0
+                  ? `Run passed — ${run.passedTests} test(s) in ${duration(run.durationMs)}.`
+                  : `Run failed — ${run.failedTests} failing test(s), ${run.erroredRequests} request error(s).`,
+                run.failedRequests + run.erroredRequests === 0 ? 'success' : 'error'
+              );
+            }
+          }
+          break;
+        case 'run:cancelled':
+          if (state.run) {
+            state.run = { ...state.run, status: 'cancelled', cancelled: true, finishedAt: Date.now() };
+            renderRunnerWorkspace();
+          }
+          break;
         case 'websocket:update':
           state.snapshot.tools = { websocket: message.payload.session };
           renderWebSocketPanel();
@@ -2769,6 +2815,198 @@
     renderWorkspace();
   }
 
+  /* --------------------------- collection runner -------------------------- */
+
+  function openRunner(collectionId, folderId) {
+    const collections = state.snapshot.collections;
+    const target =
+      collections.find((collection) => collection.id === collectionId) ||
+      collections.find((collection) => collection.id === state.runnerCollectionId) ||
+      collections[0];
+    if (!target) {
+      UI.toast('Create a collection first.', 'warning');
+      return;
+    }
+    state.runnerCollectionId = target.id;
+    state.runnerFolderId = folderId || null;
+    Ely.store.set({ runnerCollectionId: target.id });
+    state.runnerOpen = true;
+    state.websocketOpen = false;
+    state.run = null;
+    state.runnerOpenRows = [];
+    renderTabs();
+    renderWorkspace();
+  }
+
+  function closeRunner() {
+    state.runnerOpen = false;
+    renderTabs();
+    renderWorkspace();
+  }
+
+  function startRun() {
+    if (!state.runnerCollectionId) {
+      openRunner(null);
+      return;
+    }
+    state.run = {
+      runId: `local-${Date.now().toString(36)}`,
+      status: 'running',
+      cancelled: false,
+      startedAt: Date.now(),
+      durationMs: 0,
+      totalRequests: 0,
+      passedRequests: 0,
+      failedRequests: 0,
+      erroredRequests: 0,
+      totalTests: 0,
+      passedTests: 0,
+      failedTests: 0,
+      items: []
+    };
+    state.runnerOpenRows = [];
+    renderRunnerWorkspace();
+    post({
+      type: 'run:start',
+      payload: { collectionId: state.runnerCollectionId, folderId: state.runnerFolderId || undefined }
+    });
+  }
+
+  function stopRun() {
+    if (state.run && state.run.status === 'running') {
+      post({ type: 'run:cancel', payload: { runId: state.run.runId } });
+    }
+  }
+
+  function runnerStatusLabel(status) {
+    return (
+      { idle: 'Idle', running: 'Running', passed: 'Passed', failed: 'Failed', cancelled: 'Cancelled' }[status] || 'Idle'
+    );
+  }
+
+  function renderRunnerWorkspace() {
+    const collection = state.snapshot.collections.find((candidate) => candidate.id === state.runnerCollectionId);
+    const folder = state.runnerFolderId
+      ? state.snapshot.folders.find((candidate) => candidate.id === state.runnerFolderId)
+      : null;
+    const run = state.run;
+    const status = run ? run.status : 'idle';
+
+    $('#runner-title').textContent = folder
+      ? `Run: ${collection ? collection.name : 'Collection'} / ${folder.name}`
+      : collection
+        ? `Run: ${collection.name}`
+        : 'Collection runner';
+    $('#runner-subtitle').textContent = run
+      ? run.status === 'running'
+        ? 'Executing requests in tree order…'
+        : `Finished ${run.items.length} of ${run.totalRequests || run.items.length} request(s).`
+      : 'Run every request in a collection and see the aggregate result.';
+    const pill = $('#runner-status-pill');
+    pill.textContent = runnerStatusLabel(status);
+    pill.dataset.status = status;
+
+    const running = status === 'running';
+    $('#runner-run').hidden = running;
+    $('#runner-run').textContent = run && run.items.length ? 'Run again' : 'Run collection';
+    $('#runner-stop').hidden = !running;
+
+    const summary = $('#runner-summary');
+    summary.hidden = !run;
+    if (run) {
+      $('#runner-stat-tests').textContent = `${run.passedTests}/${run.passedTests + run.failedTests}`;
+      $('#runner-stat-passed').textContent = String(run.passedRequests);
+      $('#runner-stat-failed').textContent = String(run.failedRequests + run.erroredRequests);
+      $('#runner-stat-duration').textContent = duration(run.durationMs || 0);
+      const total = run.totalRequests || run.items.length || 0;
+      const pct = total ? Math.round((run.items.length / total) * 100) : running ? 4 : 0;
+      const bar = $('.runner-progress');
+      $('#runner-progress-fill').style.width = `${running ? Math.max(4, pct) : 100}%`;
+      if (bar) bar.setAttribute('aria-valuenow', String(pct));
+    }
+    renderRunnerResults(run);
+  }
+
+  function renderRunnerResults(run) {
+    const root = $('#runner-results');
+    if (!root) return;
+    clear(root);
+    if (!run || !run.items.length) {
+      root.appendChild(
+        el(
+          'div',
+          { class: 'runner-empty', id: 'runner-empty' },
+          el('p', null, run && run.status === 'running' ? 'Waiting for the first request…' : 'Pick a collection in the sidebar, then start a run.'),
+          el('p', { class: 'runner-hint' }, 'Every request is executed in tree order and its test assertions are collected into one report.')
+        )
+      );
+      return;
+    }
+    for (const item of run.items) {
+      const failed = (item.tests?.failed ?? 0) > 0 || !!item.error;
+      const tone = item.error ? 'error' : failed ? 'fail' : 'pass';
+      const open = state.runnerOpenRows.includes(item.requestId);
+      const statusLabel = item.error ? 'Error' : item.status ? `${item.status} ${item.statusText || ''}`.trim() : '—';
+      const row = el('div', { class: `runner-row ${open ? 'is-open' : ''}`, role: 'listitem' });
+      const head = el(
+        'div',
+        {
+          class: 'runner-row-head',
+          on: {
+            click: () => {
+              const index = state.runnerOpenRows.indexOf(item.requestId);
+              if (index === -1) state.runnerOpenRows.push(item.requestId);
+              else state.runnerOpenRows.splice(index, 1);
+              renderRunnerResults(state.run);
+            }
+          }
+        },
+        el(
+          'svg',
+          { class: 'runner-caret', viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+          el('path', { d: 'M4 2.5 8 6l-4 3.5', stroke: 'currentColor', 'stroke-width': '1.6', fill: 'none', 'stroke-linecap': 'round' })
+        ),
+        el('span', { class: 'runner-method' }, item.method),
+        el(
+          'span',
+          { class: 'runner-row-name' },
+          item.name,
+          el('span', { class: 'runner-row-url' }, shortUrl(item.url))
+        ),
+        el('span', { class: 'runner-row-status', dataset: { tone } }, `${tone === 'pass' ? '✓' : tone === 'fail' ? '✕' : '!'} ${statusLabel}`),
+        el('span', { class: 'runner-row-duration' }, duration(item.durationMs || 0))
+      );
+      row.appendChild(head);
+      if (open) {
+        const body = el('div', { class: 'runner-row-body' });
+        const results = item.tests?.results || [];
+        if (item.error) {
+          body.appendChild(el('div', { class: 'runner-row-error' }, `Request failed: ${item.error.message}`));
+        }
+        if (item.tests?.error) {
+          body.appendChild(el('div', { class: 'runner-row-error' }, item.tests.error));
+        }
+        if (results.length) {
+          for (const result of results) {
+            body.appendChild(
+              el(
+                'div',
+                { class: `runner-test ${result.passed ? 'is-pass' : 'is-fail'}` },
+                el('span', { class: 'runner-test-mark' }, result.passed ? '✓' : '✕'),
+                el('span', null, result.name),
+                result.message ? el('span', { class: 'runner-test-message' }, result.message) : null
+              )
+            );
+          }
+        } else if (!item.error && !item.tests?.error) {
+          body.appendChild(el('div', { class: 'runner-row-none' }, 'No test scripts on this request.'));
+        }
+        row.appendChild(body);
+      }
+      root.appendChild(row);
+    }
+  }
+
   function bindUrlBar() {
     const urlInput = $('#url-input');
     urlInput.addEventListener('input', () => {
@@ -2842,6 +3080,9 @@
       ], { alignRight: true });
     });
     $('#btn-settings').addEventListener('click', () => openSettings());
+    $('#runner-run').addEventListener('click', startRun);
+    $('#runner-stop').addEventListener('click', stopRun);
+    $('#runner-close').addEventListener('click', closeRunner);
     bindEnvironmentManager();
     $('#btn-theme').addEventListener('click', () => {
       const current = document.body.dataset.theme;

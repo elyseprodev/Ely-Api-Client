@@ -3323,3 +3323,291 @@ body.manager-mode .environment-workspace {
   width: auto;
   min-width: 0;
 }
+
+/* ---------------------------- collection runner --------------------------- */
+
+.runner-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.runner-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.runner-heading h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.runner-subtitle {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.runner-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.runner-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+
+.runner-status-pill[data-status='running'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.runner-status-pill[data-status='passed'] {
+  background: color-mix(in srgb, var(--success) 16%, transparent);
+  color: var(--success);
+}
+
+.runner-status-pill[data-status='failed'] {
+  background: color-mix(in srgb, var(--error) 16%, transparent);
+  color: var(--error);
+}
+
+.runner-status-pill[data-status='cancelled'] {
+  background: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: var(--warning);
+}
+
+.runner-summary {
+  display: grid;
+  grid-template-columns: repeat(4, max-content) 1fr;
+  align-items: center;
+  gap: 22px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.runner-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.runner-stat-label {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.runner-stat-value {
+  font-size: 15px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.runner-stat-value.is-pass {
+  color: var(--success);
+}
+
+.runner-stat-value.is-fail {
+  color: var(--error);
+}
+
+.runner-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.runner-progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 140ms ease;
+}
+
+.runner-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 22px 22px;
+}
+
+.runner-empty {
+  padding: 40px 8px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.runner-hint {
+  margin-top: 4px;
+  font-size: 11.5px;
+  opacity: 0.75;
+}
+
+.runner-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.runner-row-head {
+  display: grid;
+  grid-template-columns: 18px 58px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.runner-row-head:hover {
+  background: var(--bg-hover);
+}
+
+.runner-row.is-open .runner-row-head {
+  border-bottom: 1px solid var(--border);
+}
+
+.runner-caret {
+  width: 12px;
+  height: 12px;
+  color: var(--text-muted);
+  transition: transform 140ms ease;
+}
+
+.runner-row.is-open .runner-caret {
+  transform: rotate(90deg);
+}
+
+.runner-method {
+  font-size: 9.5px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-align: center;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.runner-row-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runner-row-url {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runner-row-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.runner-row-status[data-tone='pass'] {
+  color: var(--success);
+}
+
+.runner-row-status[data-tone='fail'] {
+  color: var(--error);
+}
+
+.runner-row-status[data-tone='error'] {
+  color: var(--warning);
+}
+
+.runner-row-duration {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  text-align: right;
+}
+
+.runner-row-body {
+  padding: 8px 12px 11px 40px;
+}
+
+.runner-test {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 3px 0;
+  font-size: 12px;
+}
+
+.runner-test-mark {
+  flex: 0 0 auto;
+  width: 14px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.runner-test.is-pass .runner-test-mark {
+  color: var(--success);
+}
+
+.runner-test.is-fail .runner-test-mark {
+  color: var(--error);
+}
+
+.runner-test-message {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.runner-row-error {
+  color: var(--error);
+  font-size: 11.5px;
+  margin-top: 4px;
+}
+
+.runner-row-none {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-style: italic;
+}

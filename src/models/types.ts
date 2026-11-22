@@ -241,6 +241,47 @@ export interface TestRunSummary {
   error?: string;
 }
 
+export interface RunItemResult {
+  requestId: string;
+  name: string;
+  method: HttpMethod;
+  /** Resolved URL actually requested. */
+  url: string;
+  status?: number;
+  statusText?: string;
+  /** Resolved URL and headers as actually sent (secrets redacted). */
+  resolved?: { method: HttpMethod; url: string; headers: ResponseHeader[] };
+  error?: HttpErrorDetails;
+  tests?: TestRunSummary;
+  durationMs: number;
+}
+
+/**
+ * Aggregate result of running a collection or folder. `status` mirrors a test suite: a run fails if
+ * any request errored or any assertion failed.
+ */
+export interface RunSummary {
+  runId: string;
+  collectionId: string;
+  collectionName: string;
+  folderId?: string;
+  folderName?: string;
+  /** Epoch milliseconds; the UI renders elapsed time, never wall-clock formatting. */
+  startedAt: number;
+  finishedAt?: number;
+  status: 'running' | 'passed' | 'failed' | 'cancelled';
+  cancelled: boolean;
+  totalRequests: number;
+  passedRequests: number;
+  failedRequests: number;
+  erroredRequests: number;
+  totalTests: number;
+  passedTests: number;
+  failedTests: number;
+  durationMs: number;
+  items: RunItemResult[];
+}
+
 export interface ScriptConsoleEntry {
   level: 'log' | 'info' | 'warn' | 'error';
   message: string;

@@ -298,6 +298,48 @@
             </div>
           </div>
 
+          <section id="runner-workspace" class="runner-workspace" aria-label="Collection runner" hidden>
+            <header class="runner-header">
+              <div class="runner-heading">
+                <span id="runner-status-pill" class="runner-status-pill" data-status="idle">Idle</span>
+                <h2 id="runner-title">Collection runner</h2>
+                <p id="runner-subtitle" class="runner-subtitle">Run every request in a collection and see the aggregate result.</p>
+              </div>
+              <div class="runner-header-actions">
+                <button id="runner-run" class="button primary" type="button">Run collection</button>
+                <button id="runner-stop" class="button danger" type="button" hidden>Stop</button>
+                <button id="runner-close" class="text-button" type="button">Back to requests</button>
+              </div>
+            </header>
+            <div class="runner-summary" id="runner-summary" hidden>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Tests</span>
+                <span id="runner-stat-tests" class="runner-stat-value">0/0</span>
+              </div>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Passed</span>
+                <span id="runner-stat-passed" class="runner-stat-value is-pass">0</span>
+              </div>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Failed</span>
+                <span id="runner-stat-failed" class="runner-stat-value is-fail">0</span>
+              </div>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Duration</span>
+                <span id="runner-stat-duration" class="runner-stat-value">0 ms</span>
+              </div>
+              <div class="runner-progress" role="progressbar" aria-label="Run progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="runner-progress-fill" class="runner-progress-fill"></div>
+              </div>
+            </div>
+            <div id="runner-results" class="runner-results" role="list" aria-label="Run results">
+              <div class="runner-empty" id="runner-empty">
+                <p>Pick a collection in the sidebar, then start a run.</p>
+                <p class="runner-hint">Every request is executed in tree order and its test assertions are collected into one report.</p>
+              </div>
+            </div>
+          </section>
+
           <section id="websocket-workspace" class="websocket-workspace" aria-label="WebSocket workspace" hidden>
             <header class="ws-header">
               <div class="ws-status" id="ws-status">

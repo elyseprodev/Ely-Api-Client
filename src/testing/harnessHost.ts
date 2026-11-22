@@ -65,6 +65,9 @@ async function main(): Promise<void> {
   out({ type: 'harness:mock', payload: { url: mock.url, wsUrl: `ws://127.0.0.1:${mock.port}/ws` } });
 
   const host = new HeadlessHostAdapter();
+  // The harness mimics a workspace folder so `${workspaceFolder}/fixtures/…` body paths resolve to
+  // the repository, exactly as they would in VS Code.
+  host.root = process.cwd();
   const workspace = new MemoryMemento();
   const core = new AppCore(
     (scope) => (scope === 'global' ? new MemoryMemento() : workspace),

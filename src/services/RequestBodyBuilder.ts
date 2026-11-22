@@ -4,7 +4,7 @@ import type { ApiRequest, BodyConfig } from '../models/types';
 import { isBodylessMethod } from '../models/types';
 import { HttpRequestError, type HttpRequestBody } from './HttpClient';
 import type { VariableResolver } from '../utils/VariableResolver';
-import { WORSPACE_ROOT_PLACEHOLDER, resolveUserPath } from '../utils/paths';
+import { resolveUserPath } from '../utils/paths';
 
 /**
  * Turns the declarative `BodyConfig` into something the HTTP engine can send.
@@ -35,7 +35,7 @@ function escapeBoundaryValue(value: string): string {
 export async function buildRequestBody(
   request: ApiRequest,
   resolver: VariableResolver,
-  options: { verifyFileAccess?: (filePath: string) => void } = {}
+  options: { verifyFileAccess?: (filePath: string) => void; workspaceRoot?: string | null } = {}
 ): Promise<BuiltBody> {
   const warnings: string[] = [];
   if (isBodylessMethod(request.method)) {
@@ -116,7 +116,7 @@ export async function buildRequestBody(
       for (const row of rows) {
         const name = resolver.resolve(row.key).value;
         if (row.type === 'file' && row.filePath) {
-          const absolute = resolveUserPath(row.filePath);
+          const absolute = resolveUserPath(row.filePath, options.workspaceRoot);
           options.verifyFileAccess?.(absolute);
           let content: Buffer;
           try {
@@ -158,7 +158,7 @@ export async function buildRequestBody(
       if (!config.binaryPath) {
         throw new HttpRequestError({ kind: 'file', message: 'No binary file selected. Choose a file in the Body tab.' });
       }
-      const absolute = resolveUserPath(config.binaryPath, WORSPACE_ROOT_PLACEHOLDER);
+      const absolute = resolveUserPath(config.binaryPath, options.workspaceRoot);
       options.verifyFileAccess?.(absolute);
       let stat: fs.Stats;
       try {

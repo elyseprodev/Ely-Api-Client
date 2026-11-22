@@ -9,13 +9,20 @@ export const WORSPACE_ROOT_PLACEHOLDER = '${workspaceFolder}';
 
 export function resolveUserPath(input: string, workspaceRoot?: string | null): string {
   const trimmed = input.trim().replace(/^~(?=$|\/)/, process.env.HOME ?? '~');
-  if (path.isAbsolute(trimmed)) {
-    return path.normalize(trimmed);
+  // A caller that only has the literal placeholder cannot expand it meaningfully; resolving against
+  // the process cwd keeps the behaviour of a plain relative path instead of producing a directory
+  // literally named `${workspaceFolder}`.
+  const root = workspaceRoot === WORSPACE_ROOT_PLACEHOLDER ? process.cwd() : workspaceRoot;
+  // `${workspaceFolder}/x` is how a portable path is stored; expanding it here means callers can
+  // hand file paths straight from the request document without a separate expansion step.
+  const expanded = expandPortablePath(trimmed, root);
+  if (path.isAbsolute(expanded)) {
+    return path.normalize(expanded);
   }
-  if (workspaceRoot) {
-    return path.normalize(path.join(workspaceRoot, trimmed));
+  if (root) {
+    return path.normalize(path.join(root, expanded));
   }
-  return path.resolve(trimmed);
+  return path.resolve(expanded);
 }
 
 /** Returns a workspace-relative path when possible so saved requests stay portable. */

@@ -153,6 +153,24 @@ export async function startMockApi(options: MockOptions = {}): Promise<MockApi> 
       json(res, 200, { charged: true, amount: 14900, currency: 'USD', body });
       return;
     }
+    if (path === '/api/v1/payments/webhook' && method === 'POST') {
+      // Accepts a multipart upload and reports what arrived so the seeded demo request can assert
+      // that the file part was actually transmitted.
+      const contentType = String(req.headers['content-type'] ?? '');
+      const boundary = /boundary=(.+)$/.exec(contentType)?.[1];
+      const fields: string[] = [];
+      let files = 0;
+      if (boundary) {
+        for (const chunk of body.split(`--${boundary}`)) {
+          const disposition = /name="([^"]+)"/.exec(chunk)?.[1];
+          if (!disposition) continue;
+          if (/filename="/.test(chunk)) files += 1;
+          else fields.push(disposition);
+        }
+      }
+      json(res, 200, { received: true, contentType, fields, files, bytes: Buffer.byteLength(body, 'utf8') });
+      return;
+    }
     if (path === '/echo') {
       // Mirrors the request back so tests can assert on exactly what went over the wire.
       const query: Record<string, string> = {};

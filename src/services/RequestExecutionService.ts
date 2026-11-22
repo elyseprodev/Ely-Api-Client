@@ -53,6 +53,8 @@ export interface ExecutionContext {
   signal?: AbortSignal;
   /** File access guard (workspace trust). */
   verifyFileAccess?: (filePath: string) => void;
+  /** Root used to resolve `${workspaceFolder}/…` file paths in request bodies. */
+  workspaceRoot?: string | null;
 }
 
 export interface ExecutionDependencies {
@@ -162,7 +164,10 @@ export class RequestExecutionService {
     let body: HttpRequestBody | undefined;
     let bodySummary = 'No body';
     try {
-      const built = await buildRequestBody(request, resolver, { verifyFileAccess: context.verifyFileAccess });
+      const built = await buildRequestBody(request, resolver, {
+        verifyFileAccess: context.verifyFileAccess,
+        workspaceRoot: context.workspaceRoot
+      });
       bodySummary = built.summary;
       if (built.body) {
         body = built.body;

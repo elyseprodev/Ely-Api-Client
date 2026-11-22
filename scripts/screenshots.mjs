@@ -104,6 +104,28 @@ const SHOTS = [
     }
   },
   {
+    id: '08b',
+    slug: 'collection-runner',
+    title: 'Collection runner',
+    steps: async (page) => {
+      // Batch run: every request in the demo collection with an aggregate test report.
+      await page.click('.tree-row:has-text("Acme Commerce API")', { button: 'right' });
+      await page.waitForTimeout(300);
+      await page.click('.context-menu .menu-item:has-text("Run collection")');
+      await page.waitForTimeout(400);
+      await page.click('#runner-run');
+      await page.waitForFunction(
+        () => document.querySelector('#runner-status-pill')?.dataset.status !== 'running',
+        null,
+        { timeout: 60000 }
+      );
+      await page.waitForTimeout(500);
+      // Expand the first request so the per-assertion report is visible.
+      await page.locator('.runner-row-head').first().click();
+      await page.waitForTimeout(300);
+    }
+  },
+  {
     id: '09',
     slug: 'websocket',
     title: 'WebSocket testing',

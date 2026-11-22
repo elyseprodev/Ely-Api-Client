@@ -459,6 +459,10 @@
     collectionFilter: '',
     environmentEditor: null,
     websocketOpen: false,
+    runnerOpen: false,
+    runnerCollectionId: Ely.store.get('runnerCollectionId', null),
+    run: null,
+    runnerOpenRows: [],
     splitRatio: Ely.store.get('splitRatio', 0.46)
   };
   const unsaved = new Map();

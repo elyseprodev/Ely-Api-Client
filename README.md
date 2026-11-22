@@ -134,6 +134,19 @@ Supported: `pm.test`, `pm.expect` (chai subset incl. `to.be.an.array`, `.not`, `
 `pm.variables`, `pm.cookies`, console capture, and pre-request scripts. Scripts are time-limited,
 memory-limited and cannot import modules or touch the network.
 
+#### Collection runner
+
+Running a single request proves it works once. The runner proves the whole collection still works:
+right-click a collection (or a folder) and pick **Run collection** / **Run folder**. Every request is
+executed in tree order through the same pipeline an interactive send uses, and the results are
+aggregated into one report — pass/fail per request, every assertion, total assertions and elapsed
+time. A green run also lands in history, so a batch is auditable exactly like a manual send.
+
+Folder runs include subfolders, which makes it easy to smoke-test one area (`Payments`) without
+touching the rest of the API.
+
+![Collection runner](docs/screenshots/08b-collection-runner.png)
+
 ### 9. WebSocket testing
 
 Connect to any `ws://` or `wss://` endpoint, send and receive frames with timestamps, and inspect the
@@ -276,7 +289,8 @@ Being explicit about what is **not** implemented yet:
 
 - GraphQL-specific tooling (schema introspection, variable forms) — the `graphql` body type works,
   but there is no schema-aware editor.
-- Collection runner / CI integration — tests run per request, not as a folder suite.
+- Headless CLI runner for CI — the collection runner runs inside the extension UI; there is no
+  `elyapi run` binary to wire into a pipeline yet.
 - gRPC, SSE and MQTT protocols.
 - Cookie jar persistence between requests (cookies are displayed per response, not replayed).
 - Syncing collections across machines (local-first by design; export/import is the transfer path).

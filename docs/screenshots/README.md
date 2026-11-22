@@ -13,5 +13,6 @@ workspace (light theme; add `-dark` for the dark variant).
 | 06 | Collections and folders | `06-collections.png` |
 | 07 | Environment manager | `07-environments.png` |
 | 08 | Automated API testing | `08-testing.png` |
+| 08b | Collection runner | `08b-collection-runner.png` |
 | 09 | WebSocket testing | `09-websocket.png` |
 | 10 | Settings and preferences | `10-settings.png` |

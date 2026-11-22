@@ -18,6 +18,7 @@ import { EnvironmentService } from './EnvironmentService';
 import { HistoryService } from './HistoryService';
 import { WebSocketService } from './WebSocketService';
 import { RequestExecutionService } from './RequestExecutionService';
+import { CollectionRunner, RunAbortedError } from './CollectionRunner';
 import { ImportExportService } from './ImportExportService';
 import { toWebviewSettings, type ExtensionSettings } from './SettingsService';
 import { ScriptRunner } from '../scripting/ScriptRunner';
@@ -123,6 +124,13 @@ export class HeadlessHostAdapter implements HostAdapter {
       throw new SecurityError('Reading files is disabled in Restricted Mode. Trust the workspace to send file bodies.', 'blocked');
     }
   }
+
+  /** Set by the harness so ${workspaceFolder}/… body paths resolve like a real workspace. */
+  workspaceRoot(): string | null {
+    return this.root;
+  }
+
+  root: string | null = null;
 }
 
 const MASK = '••••••••';
@@ -134,6 +142,7 @@ export class AppCore {
   protected readonly storage: StorageManager;
   protected readonly scriptRunner: ScriptRunner;
   protected readonly execution: RequestExecutionService;
+  protected readonly runner: CollectionRunner;
   protected readonly importExport = new ImportExportService();
 
   readonly collections: CollectionService;
@@ -143,6 +152,7 @@ export class AppCore {
 
   protected transport: ClientTransport | undefined;
   protected readonly pendingRequests = new Map<string, { controller: AbortController; startedAt: number }>();
+  protected readonly pendingRuns = new Map<string, { controller: AbortController; startedAt: number }>();
   protected readonly openDocuments = new Map<string, { request: ApiRequest; dirty: boolean }>();
   protected settings: ExtensionSettings;
 
@@ -178,6 +188,12 @@ export class AppCore {
           this.collections.saveRequest(updated);
         }
       }
+    });
+
+    this.runner = new CollectionRunner({
+      execution: this.execution,
+      collections: this.collections,
+      onProgress: (summary) => this.post({ type: 'run:progress', payload: { run: summary } })
     });
 
     this.applySettings();
@@ -333,6 +349,18 @@ export class AppCore {
           this.post({ type: 'response:files', requestId, payload: { files } });
           break;
         }
+        case 'run:start':
+          await this.handleRunStart(payload, requestId);
+          break;
+        case 'run:cancel': {
+          const runId = String(payload.runId ?? '');
+          const pending = this.pendingRuns.get(runId);
+          if (pending) {
+            pending.controller.abort();
+            this.pendingRuns.delete(runId);
+          }
+          break;
+        }
         case 'collection:create':
           this.collections.createCollection(validateName(String(payload.name ?? 'New Collection'), 'Collection name'));
           await this.broadcastState();
@@ -466,6 +494,50 @@ export class AppCore {
 
   /* -------------------------------- requests ------------------------------- */
 
+  private async handleRunStart(payload: Record<string, unknown>, requestId?: string): Promise<void> {
+    const collectionId = String(payload.collectionId ?? '');
+    const folderId = payload.folderId ? String(payload.folderId) : undefined;
+    const environment = await this.environmentWithSecrets();
+    const controller = new AbortController();
+    const runId = `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    this.pendingRuns.set(runId, { controller, startedAt: Date.now() });
+    try {
+      const summary = await this.runner.run({
+        collectionId,
+        folderId,
+        environment,
+        settings: this.executionSettings,
+        signal: controller.signal,
+        workspaceRoot: this.workspaceRoot
+      });
+      this.post({ type: 'run:finished', requestId, payload: { run: { ...summary, runId } } });
+      // A batch run is also history: every request recorded as if it were sent by hand, reusing the
+      // same result shape so timings, status and test counts stay identical.
+      for (const item of summary.items) {
+        const request = this.collections.getRequest(item.requestId);
+        if (request && item.resolved) {
+          this.history.record(request, {
+            requestId: item.requestId,
+            resolved: item.resolved,
+            tests: item.tests,
+            error: item.error,
+            durationMs: item.durationMs
+          });
+        }
+      }
+      await this.broadcastState();
+    } catch (error) {
+      if (error instanceof RunAbortedError) {
+        this.post({ type: 'run:cancelled', requestId, payload: { runId } });
+        return;
+      }
+      const reason = error instanceof Error ? error.message : String(error);
+      this.post({ type: 'run:finished', requestId, payload: { error: { kind: 'unknown', message: reason } } });
+    } finally {
+      this.pendingRuns.delete(runId);
+    }
+  }
+
   private async handleSend(payload: Record<string, unknown>, requestId?: string): Promise<void> {
     const draft = payload.request as ApiRequest | undefined;
     if (!draft) {
@@ -492,7 +564,8 @@ export class AppCore {
         collectionTests,
         settings: this.executionSettings,
         signal: controller.signal,
-        verifyFileAccess: () => this.host.assertFileAccessAllowed()
+        verifyFileAccess: () => this.host.assertFileAccessAllowed(),
+        workspaceRoot: this.workspaceRoot
       });
       this.pendingRequests.delete(id);
       this.post({ type: 'request:finished', requestId: id, payload: result });
@@ -506,6 +579,11 @@ export class AppCore {
           : { kind: 'unknown', message: redactSecrets(error instanceof Error ? error.message : String(error)) };
       this.post({ type: 'request:finished', requestId: id, payload: { error: details } as Partial<SendRequestResult> });
     }
+  }
+
+  /** Workspace root used to expand `${workspaceFolder}/…` file paths; null outside a folder. */
+  protected get workspaceRoot(): string | null {
+    return this.host.workspaceRoot ? this.host.workspaceRoot() : null;
   }
 
   private async environmentWithSecrets(): Promise<ApiEnvironment | undefined> {
