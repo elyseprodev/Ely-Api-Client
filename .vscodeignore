@@ -1,0 +1,28 @@
+# ---- sources and tooling (not shipped) -------------------------------------
+src/**
+test/**
+scripts/**
+docs/**
+.vscode/**
+.vscode-test/**
+.github/**
+coverage/**
+out/**/*.map
+out/testing/**
+tsconfig*.json
+eslint.config.mjs
+vitest.config.ts
+.editorconfig
+.gitignore
+
+# TypeScript sources anywhere in the package
+**/*.ts
+!node_modules/**/*.d.ts
+
+# Dev dependencies are not bundled; `ws` is the only runtime dependency.
+node_modules/**
+!node_modules/ws/**
+!node_modules/@types/**
+
+# ---- shipped runtime assets ------------------------------------------------
+# media/webview/**, media/styles/main.css, media/scripts/*.js and media/icons/* are kept.
