@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src {{cspSource}} data: blob:; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}'; font-src {{cspSource}}; connect-src 'none'; form-action 'none'; base-uri 'none';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElyApiClient</title>
+    <link rel="stylesheet" href="{{styleUri}}" />
+  </head>
+  <body data-theme="dark">
+    <div id="app" class="app">
+      <header class="titlebar" role="banner">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6.5h16M4 12h10M4 17.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <circle cx="18.5" cy="16.5" r="3.2" fill="currentColor" />
+          </svg>
+          <span class="brand-name">ElyApiClient</span>
+        </div>
+
+        <div class="titlebar-center">
+          <button id="env-selector" class="env-selector" type="button" title="Select active environment (Ctrl+Alt+V)">
+            <span class="env-dot" aria-hidden="true"></span>
+            <span id="env-selector-label">No environment</span>
+            <svg viewBox="0 0 12 12" aria-hidden="true" class="chevron"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" /></svg>
+          </button>
+          <div id="env-popover" class="popover env-popover" hidden role="dialog" aria-label="Environments"></div>
+        </div>
+
+        <div class="titlebar-actions">
+          <button id="btn-import" class="icon-button" type="button" title="Import collection (Ctrl+Alt+I)" aria-label="Import collection">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="btn-theme" class="icon-button" type="button" title="Toggle theme (Ctrl+Alt+L)" aria-label="Toggle theme">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="btn-settings" class="icon-button" type="button" title="Settings (Ctrl+,)" aria-label="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6h.09A1.7 1.7 0 0 0 10.64 3.05V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.75 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 20.1 9v.09a1.7 1.7 0 0 0 1.55 1.55H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.05Z" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside id="sidebar" class="sidebar" aria-label="Workspace explorer">
+          <nav class="sidebar-nav" role="tablist" aria-label="Sidebar sections">
+            <button class="sidebar-tab is-active" role="tab" aria-selected="true" data-section="collections" title="Collections">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6a2 2 0 0 1 2-2h3.6a2 2 0 0 1 1.4.6L12.4 6H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+              <span>Collections</span>
+            </button>
+            <button class="sidebar-tab" role="tab" aria-selected="false" data-section="history" title="History">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+              <span>History</span>
+            </button>
+            <button class="sidebar-tab" role="tab" aria-selected="false" data-section="environments" title="Environments">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="17" r="2.2" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+              <span>Env</span>
+            </button>
+            <button class="sidebar-tab" role="tab" aria-selected="false" data-section="websocket" title="WebSocket">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19.5 10 13l3.5 3L19 9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="6" r="1.8" fill="currentColor"/></svg>
+              <span>Socket</span>
+            </button>
+          </nav>
+
+          <div class="sidebar-body">
+            <div class="sidebar-panel" data-panel="collections">
+              <div class="panel-toolbar">
+                <div class="search-field">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                  <input id="collection-search" type="search" placeholder="Search requests…" aria-label="Search requests" />
+                  <kbd class="search-kbd">/</kbd>
+                </div>
+                <button id="btn-new-collection" class="icon-button small" type="button" title="New collection" aria-label="New collection">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+              <div id="collection-tree" class="tree" role="tree" aria-label="Collections"></div>
+              <footer class="sidebar-footer">
+                <button id="btn-new-collection-footer" class="button ghost small" type="button" title="Create a collection">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  New Collection
+                </button>
+                <button id="btn-new-folder-footer" class="button ghost small" type="button" title="Create a folder in the selected collection">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+                  New Folder
+                </button>
+              </footer>
+            </div>
+
+            <div class="sidebar-panel" data-panel="history" hidden>
+              <div class="panel-toolbar">
+                <div class="search-field">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                  <input id="history-search" type="search" placeholder="Filter history…" aria-label="Filter history" />
+                </div>
+                <button id="btn-clear-history" class="icon-button small" type="button" title="Clear history" aria-label="Clear history">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+              <div id="history-list" class="history-list" role="list"></div>
+            </div>
+
+            <div class="sidebar-panel" data-panel="environments" hidden>
+              <div class="panel-toolbar">
+                <span class="panel-title">Environments</span>
+                <button id="btn-new-environment" class="icon-button small" type="button" title="New environment" aria-label="New environment">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+              <div id="environment-list" class="env-list" role="list"></div>
+              <div class="sidebar-hint">
+                <strong>Tip</strong> Reference variables with <code>{{baseUrl}}</code>. Secret values stay in the OS keychain and never appear in exports.
+              </div>
+            </div>
+
+            <div class="sidebar-panel" data-panel="websocket" hidden>
+              <div id="ws-compact" class="ws-compact"></div>
+              <button id="btn-open-ws" class="button secondary full" type="button">Open WebSocket workspace</button>
+            </div>
+          </div>
+        </aside>
+
+        <main id="main" class="main" aria-label="Request workspace">
+          <div id="tabs" class="doc-tabs" role="tablist" aria-label="Open requests"></div>
+          <div id="request-workspace" class="request-workspace" hidden>
+            <section class="request-bar" aria-label="Request URL bar">
+              <button id="method-select" class="method-select" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span id="method-label">GET</span>
+                <svg viewBox="0 0 12 12" aria-hidden="true" class="chevron"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+              </button>
+              <div id="method-menu" class="menu method-menu" role="listbox" hidden></div>
+              <input id="url-input" class="url-input" type="text" spellcheck="false" autocomplete="off" placeholder="https://api.example.com/v1/resource" aria-label="Request URL" />
+              <button id="btn-send" class="button primary send" type="button" title="Send request (Ctrl+Alt+Enter)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-8 16-2-6Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>
+                <span>Send</span>
+              </button>
+              <button id="btn-cancel" class="button danger send-cancel" type="button" title="Cancel request (Esc)" hidden>
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Cancel</span>
+              </button>
+              <button id="btn-save" class="icon-button" type="button" title="Save request (Ctrl+Alt+S)" aria-label="Save request">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 4v5h7V4M8 20v-6h8v6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="request-more" class="icon-button" type="button" title="More actions" aria-label="More actions" aria-haspopup="menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg>
+              </button>
+            </section>
+            <div class="request-meta">
+              <input id="request-name" class="request-name" type="text" aria-label="Request name" placeholder="Untitled Request" />
+              <span id="dirty-indicator" class="dirty-indicator" hidden>Unsaved changes</span>
+              <span id="unresolved-warning" class="inline-warning" hidden></span>
+            </div>
+
+            <nav class="tabbar" role="tablist" aria-label="Request configuration">
+              <button class="tab-item is-active" role="tab" aria-selected="true" data-tab="params">Params <span class="tab-count" id="count-params"></span></button>
+              <button class="tab-item" role="tab" aria-selected="false" data-tab="headers">Headers <span class="tab-count" id="count-headers"></span></button>
+              <button class="tab-item" role="tab" aria-selected="false" data-tab="auth">Authorization</button>
+              <button class="tab-item" role="tab" aria-selected="false" data-tab="body">Body <span class="tab-dot" id="dot-body" hidden></span></button>
+              <button class="tab-item" role="tab" aria-selected="false" data-tab="scripts">Scripts <span class="tab-dot" id="dot-scripts" hidden></span></button>
+              <button class="tab-item" role="tab" aria-selected="false" data-tab="settings">Settings</button>
+            </nav>
+
+            <div id="request-panels" class="request-panels">
+              <section class="request-panel" data-panel="params" role="tabpanel"></section>
+              <section class="request-panel" data-panel="headers" role="tabpanel" hidden></section>
+              <section class="request-panel" data-panel="auth" role="tabpanel" hidden></section>
+              <section class="request-panel" data-panel="body" role="tabpanel" hidden></section>
+              <section class="request-panel" data-panel="scripts" role="tabpanel" hidden></section>
+              <section class="request-panel" data-panel="settings" role="tabpanel" hidden></section>
+            </div>
+
+            <div id="splitter" class="splitter" role="separator" aria-orientation="horizontal" tabindex="0" aria-label="Resize response panel"></div>
+
+            <section id="response-workspace" class="response-workspace" aria-label="Response">
+              <div id="response-empty" class="empty-state">
+                <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="3 5"/><path d="M16 24h13m0 0-4-4m4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <h3>Ready when you are</h3>
+                <p>Enter a URL and press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Enter</kbd> or click <strong>Send</strong>.</p>
+                <div class="empty-shortcuts">
+                  <span><kbd>Ctrl</kbd>+<kbd>S</kbd> Save</span>
+                  <span><kbd>Esc</kbd> Cancel</span>
+                  <span><kbd>/</kbd> Search</span>
+                </div>
+              </div>
+              <div id="response-loading" class="response-loading" hidden>
+                <div class="response-skeleton">
+                  <div class="skeleton-line w40"></div>
+                  <div class="skeleton-line w80"></div>
+                  <div class="skeleton-line w60"></div>
+                </div>
+              </div>
+              <div id="response-content" class="response-content" hidden>
+                <div class="response-status">
+                  <div class="status-cluster">
+                    <span id="status-code" class="status-code">200</span>
+                    <span id="status-text" class="status-text">OK</span>
+                  </div>
+                  <div class="metric"><span class="metric-label">Time</span><span id="metric-time" class="metric-value">0 ms</span></div>
+                  <div class="metric"><span class="metric-label">Size</span><span id="metric-size" class="metric-value">0 B</span></div>
+                  <div class="metric"><span class="metric-label">Type</span><span id="metric-type" class="metric-value">—</span></div>
+                  <div class="status-actions">
+                    <button id="btn-copy-response" class="icon-button small" type="button" title="Copy response body" aria-label="Copy response body">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 15V6a2 2 0 0 1 2-2h8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+                    </button>
+                    <button id="btn-export-curl" class="text-button" type="button" title="Copy as cURL">cURL</button>
+                  </div>
+                </div>
+                <div id="error-panel" class="error-panel" hidden>
+                  <div class="error-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 8v5m0 3.5h.01M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="error-body">
+                    <h4 id="error-title">Request failed</h4>
+                    <p id="error-message"></p>
+                    <p id="error-hint" class="error-hint" hidden></p>
+                  </div>
+                </div>
+                <nav class="tabbar response-tabs" role="tablist" aria-label="Response views">
+                  <button class="tab-item is-active" role="tab" aria-selected="true" data-rtab="pretty">Pretty</button>
+                  <button class="tab-item" role="tab" aria-selected="false" data-rtab="raw">Raw</button>
+                  <button class="tab-item" role="tab" aria-selected="false" data-rtab="preview">Preview</button>
+                  <button class="tab-item" role="tab" aria-selected="false" data-rtab="headers">Headers <span class="tab-count" id="count-resp-headers"></span></button>
+                  <button class="tab-item" role="tab" aria-selected="false" data-rtab="cookies">Cookies <span class="tab-count" id="count-cookies"></span></button>
+                  <button class="tab-item" role="tab" aria-selected="false" data-rtab="tests">Tests <span class="test-badge" id="test-badge" hidden></span></button>
+                  <button class="tab-item" role="tab" aria-selected="false" data-rtab="timing">Timing</button>
+                  <div class="response-tabs-spacer"></div>
+                  <button id="btn-wrap" class="text-button" type="button" title="Toggle line wrapping">Wrap</button>
+                  <button id="btn-search-response" class="icon-button small" type="button" title="Search in response (Ctrl+F)" aria-label="Search in response">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                  </button>
+                </nav>
+                <div id="response-search" class="response-search" hidden>
+                  <input id="response-search-input" type="search" placeholder="Find in response…" aria-label="Find in response" />
+                  <span id="response-search-count" class="search-count"></span>
+                  <button id="response-search-close" class="icon-button small" type="button" aria-label="Close search">×</button>
+                </div>
+                <div class="response-body">
+                  <div class="response-view" data-rview="pretty" role="tabpanel"></div>
+                  <div class="response-view" data-rview="raw" role="tabpanel" hidden></div>
+                  <div class="response-view" data-rview="preview" role="tabpanel" hidden></div>
+                  <div class="response-view" data-rview="headers" role="tabpanel" hidden></div>
+                  <div class="response-view" data-rview="cookies" role="tabpanel" hidden></div>
+                  <div class="response-view" data-rview="tests" role="tabpanel" hidden></div>
+                  <div class="response-view" data-rview="timing" role="tabpanel" hidden></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div id="welcome" class="welcome">
+            <div class="welcome-hero">
+              <div class="welcome-brand">
+                <svg class="welcome-mark" viewBox="0 0 64 64" aria-hidden="true">
+                  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#g)" />
+                  <path d="M17 22h30M17 32h19M17 42h11" stroke="#fff" stroke-width="3.4" stroke-linecap="round" />
+                  <circle cx="44" cy="42" r="6" fill="#fff" />
+                  <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#FB923C" /><stop offset="1" stop-color="#EA580C" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div>
+                  <h1>ElyApiClient</h1>
+                  <p class="tagline">Test APIs. Debug Faster. Build Better.</p>
+                </div>
+              </div>
+              <div class="welcome-actions">
+                <button id="welcome-new" class="button primary large" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  New Request
+                </button>
+                <button id="welcome-import" class="button secondary large" type="button">Import Collection</button>
+                <button id="welcome-ws" class="button ghost large" type="button">WebSocket Client</button>
+              </div>
+            </div>
+            <div class="welcome-grid">
+              <section class="welcome-card">
+                <h2>Start from a template</h2>
+                <div id="welcome-templates" class="template-list"></div>
+              </section>
+              <section class="welcome-card">
+                <h2>Recent requests</h2>
+                <div id="welcome-recent" class="recent-list"></div>
+              </section>
+              <section class="welcome-card">
+                <h2>Shortcuts</h2>
+                <dl class="shortcut-list">
+                  <div><dt>Send request</dt><dd><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>Enter</kbd></dd></div>
+                  <div><dt>Save request</dt><dd><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>S</kbd></dd></div>
+                  <div><dt>New request</dt><dd><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>N</kbd></dd></div>
+                  <div><dt>Cancel request</dt><dd><kbd>Esc</kbd></dd></div>
+                  <div><dt>Switch environment</dt><dd><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>V</kbd></dd></div>
+                </dl>
+              </section>
+            </div>
+          </div>
+
+          <section id="runner-workspace" class="runner-workspace" aria-label="Collection runner" hidden>
+            <header class="runner-header">
+              <div class="runner-heading">
+                <span id="runner-status-pill" class="runner-status-pill" data-status="idle">Idle</span>
+                <h2 id="runner-title">Collection runner</h2>
+                <p id="runner-subtitle" class="runner-subtitle">Run every request in a collection and see the aggregate result.</p>
+              </div>
+              <div class="runner-header-actions">
+                <button id="runner-run" class="button primary" type="button">Run collection</button>
+                <button id="runner-stop" class="button danger" type="button" hidden>Stop</button>
+                <button id="runner-close" class="text-button" type="button">Back to requests</button>
+              </div>
+            </header>
+            <div class="runner-summary" id="runner-summary" hidden>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Tests</span>
+                <span id="runner-stat-tests" class="runner-stat-value">0/0</span>
+              </div>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Passed</span>
+                <span id="runner-stat-passed" class="runner-stat-value is-pass">0</span>
+              </div>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Failed</span>
+                <span id="runner-stat-failed" class="runner-stat-value is-fail">0</span>
+              </div>
+              <div class="runner-stat">
+                <span class="runner-stat-label">Duration</span>
+                <span id="runner-stat-duration" class="runner-stat-value">0 ms</span>
+              </div>
+              <div class="runner-progress" role="progressbar" aria-label="Run progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="runner-progress-fill" class="runner-progress-fill"></div>
+              </div>
+            </div>
+            <div id="runner-results" class="runner-results" role="list" aria-label="Run results">
+              <div class="runner-empty" id="runner-empty">
+                <p>Pick a collection in the sidebar, then start a run.</p>
+                <p class="runner-hint">Every request is executed in tree order and its test assertions are collected into one report.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="websocket-workspace" class="websocket-workspace" aria-label="WebSocket workspace" hidden>
+            <header class="ws-header">
+              <div class="ws-status" id="ws-status">
+                <span class="ws-status-dot" aria-hidden="true"></span>
+                <span id="ws-status-label">Disconnected</span>
+              </div>
+              <input id="ws-url" class="url-input" type="text" spellcheck="false" placeholder="wss://echo.websocket.org" aria-label="WebSocket URL" />
+              <button id="ws-connect" class="button primary" type="button">Connect</button>
+              <button id="ws-disconnect" class="button danger" type="button" hidden>Disconnect</button>
+              <button id="ws-clear" class="icon-button" type="button" title="Clear log" aria-label="Clear log">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+              </button>
+              <button id="ws-back" class="text-button" type="button">Back to requests</button>
+            </header>
+            <div class="ws-body">
+              <div id="ws-log" class="ws-log" aria-live="polite"></div>
+              <form id="ws-form" class="ws-composer">
+                <textarea id="ws-message" class="ws-message" rows="3" placeholder="Type a message and press Enter. Shift+Enter for a new line." aria-label="Message to send"></textarea>
+                <button id="ws-send" class="button primary" type="submit">Send</button>
+              </form>
+            </div>
+          </section>
+
+          <!-- Environment manager: persistent master-detail editor (Environments rail). -->
+          <section id="environment-workspace" class="environment-workspace" aria-label="Environment manager" hidden>
+            <div class="env-manager">
+              <aside class="env-manager-list" aria-label="Environments">
+                <header class="env-manager-head">
+                  <span class="env-manager-title">Environments</span>
+                  <button id="env-new" class="icon-button small" type="button" title="New environment" aria-label="New environment">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  </button>
+                </header>
+                <div id="env-manager-items" class="env-manager-items" role="listbox" aria-label="Environment list"></div>
+              </aside>
+              <div class="env-manager-detail">
+                <header class="env-manager-detail-head">
+                  <div class="env-manager-detail-title">
+                    <h2 id="env-editor-name">Environment</h2>
+                    <span id="env-editor-subtitle" class="env-manager-subtitle">Select an environment</span>
+                  </div>
+                  <div class="env-manager-detail-actions">
+                    <button id="env-activate" class="button ghost small" type="button">Set active</button>
+                    <button id="env-duplicate" class="button ghost small" type="button">Duplicate</button>
+                    <button id="env-delete" class="button ghost small danger-text" type="button">Delete</button>
+                  </div>
+                </header>
+                <div class="env-manager-split">
+                  <div class="env-manager-vars">
+                    <div class="env-manager-vars-head">
+                      <span class="env-manager-label">Variables</span>
+                      <span id="env-editor-count" class="badge">0</span>
+                    </div>
+                    <div id="env-editor-rows" class="env-editor-rows"></div>
+                    <button id="env-add-variable" class="add-row-button" type="button">+ Add variable</button>
+                  </div>
+                  <aside class="env-manager-aside" aria-label="Environment details">
+                    <div class="env-aside-block">
+                      <label class="env-aside-label" for="env-editor-rename">Name</label>
+                      <input id="env-editor-rename" class="settings-input" type="text" spellcheck="false" aria-label="Environment name" />
+                    </div>
+                    <div class="env-aside-block">
+                      <span class="env-aside-label">Storage</span>
+                      <p class="env-aside-hint">Variables are stored with this workspace. Values flagged as secrets live in the OS keychain and are never exported.</p>
+                    </div>
+                    <div id="env-editor-preview" class="env-aside-block env-preview"></div>
+                  </aside>
+                </div>
+                <footer class="env-manager-footer">
+                  <span id="env-editor-status" class="env-manager-status"></span>
+                  <div class="spacer"></div>
+                  <button id="env-editor-revert" class="button ghost" type="button">Revert</button>
+                  <button id="env-editor-save" class="button primary" type="button">Save</button>
+                </footer>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <footer class="statusbar" role="contentinfo">
+        <div class="statusbar-left">
+          <span id="status-env" class="statusbar-item">No environment</span>
+          <span id="status-progress" class="statusbar-item" hidden><span class="spinner small" aria-hidden="true"></span> Sending…</span>
+        </div>
+        <div class="statusbar-right">
+          <span id="status-count" class="statusbar-item">0 collections</span>
+          <span class="statusbar-item mode"><span class="status-dot"></span> Local-first</span>
+        </div>
+      </footer>
+    </div>
+
+    <div id="modal-root"></div>
+    <div id="toast-root" class="toast-root" aria-live="polite"></div>
+    <div id="context-menu" class="menu context-menu" hidden role="menu"></div>
+    <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+    {{scripts}}
+  </body>
+</html>

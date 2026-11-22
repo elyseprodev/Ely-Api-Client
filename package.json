@@ -1,0 +1,503 @@
+{
+  "name": "elyapi-client",
+  "displayName": "ElyApiClient",
+  "description": "A modern, local-first REST & WebSocket API client for VS Code. Test APIs. Debug Faster. Build Better.",
+  "version": "0.1.0",
+  "publisher": "elyseprodev",
+  "license": "MIT",
+  "icon": "media/icons/marketplace-icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "keywords": [
+    "api",
+    "rest",
+    "http",
+    "client",
+    "postman",
+    "thunder client",
+    "api testing",
+    "websocket",
+    "openapi",
+    "developer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elyseprodev/Ely-Api-Client"
+  },
+  "bugs": {
+    "url": "https://github.com/elyseprodev/Ely-Api-Client/issues"
+  },
+  "homepage": "https://github.com/elyseprodev/Ely-Api-Client#readme",
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "elyApiClient.openClient",
+        "title": "Open Client",
+        "category": "ElyApiClient",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "elyApiClient.newRequest",
+        "title": "New Request",
+        "category": "ElyApiClient",
+        "icon": "$(add)"
+      },
+      {
+        "command": "elyApiClient.sendRequest",
+        "title": "Send Request",
+        "category": "ElyApiClient",
+        "icon": "$(send)"
+      },
+      {
+        "command": "elyApiClient.saveRequest",
+        "title": "Save Request",
+        "category": "ElyApiClient",
+        "icon": "$(save)"
+      },
+      {
+        "command": "elyApiClient.newCollection",
+        "title": "New Collection",
+        "category": "ElyApiClient",
+        "icon": "$(folder-library)"
+      },
+      {
+        "command": "elyApiClient.newFolder",
+        "title": "New Folder",
+        "category": "ElyApiClient",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "elyApiClient.newEnvironment",
+        "title": "New Environment",
+        "category": "ElyApiClient",
+        "icon": "$(symbol-namespace)"
+      },
+      {
+        "command": "elyApiClient.importCollection",
+        "title": "Import Collection",
+        "category": "ElyApiClient",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "elyApiClient.exportCollection",
+        "title": "Export Collection",
+        "category": "ElyApiClient",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "elyApiClient.clearHistory",
+        "title": "Clear History",
+        "category": "ElyApiClient",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "elyApiClient.openWebSocket",
+        "title": "Open WebSocket Client",
+        "category": "ElyApiClient",
+        "icon": "$(radio-tower)"
+      },
+      {
+        "command": "elyApiClient.openSettings",
+        "title": "Open Client Settings",
+        "category": "ElyApiClient",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "elyApiClient.refreshExplorer",
+        "title": "Refresh Explorer",
+        "category": "ElyApiClient",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "elyApiClient.deleteNode",
+        "title": "Delete",
+        "category": "ElyApiClient",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "elyApiClient.renameNode",
+        "title": "Rename",
+        "category": "ElyApiClient",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "elyApiClient.duplicateNode",
+        "title": "Duplicate",
+        "category": "ElyApiClient",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "elyApiClient.moveNode",
+        "title": "Move To...",
+        "category": "ElyApiClient",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "elyApiClient.setActiveEnvironment",
+        "title": "Set Active Environment",
+        "category": "ElyApiClient",
+        "icon": "$(check)"
+      },
+      {
+        "command": "elyApiClient.clearWebSocketLog",
+        "title": "Clear WebSocket Log",
+        "category": "ElyApiClient",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "elyApiClient.openClient",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e"
+      },
+      {
+        "command": "elyApiClient.newRequest",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n"
+      },
+      {
+        "command": "elyApiClient.sendRequest",
+        "key": "ctrl+alt+enter",
+        "mac": "cmd+alt+enter"
+      },
+      {
+        "command": "elyApiClient.saveRequest",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "elyApiClient",
+          "title": "ElyApiClient",
+          "icon": "media/icons/activity-bar.svg"
+        }
+      ]
+    },
+    "views": {
+      "elyApiClient": [
+        {
+          "id": "elyApiClient.explorer",
+          "name": "Workspace",
+          "icon": "media/icons/activity-bar.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "elyApiClient.explorer",
+        "contents": "Send, test and organise API requests without leaving your editor.\n[New Request](command:elyApiClient.newRequest)\n[Import Collection](command:elyApiClient.importCollection)\n[Open Client](command:elyApiClient.openClient)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "elyApiClient.newRequest",
+          "when": "view == elyApiClient.explorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "elyApiClient.newCollection",
+          "when": "view == elyApiClient.explorer",
+          "group": "navigation@2"
+        },
+        {
+          "command": "elyApiClient.importCollection",
+          "when": "view == elyApiClient.explorer",
+          "group": "navigation@3"
+        },
+        {
+          "command": "elyApiClient.refreshExplorer",
+          "when": "view == elyApiClient.explorer",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "elyApiClient.renameNode",
+          "when": "view == elyApiClient.explorer && viewItem =~ /^ely\\.(collection|folder|request|environment)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "elyApiClient.deleteNode",
+          "when": "view == elyApiClient.explorer && viewItem =~ /^ely\\.(collection|folder|request|environment|history)/",
+          "group": "inline@2"
+        },
+        {
+          "command": "elyApiClient.duplicateNode",
+          "when": "view == elyApiClient.explorer && viewItem =~ /^ely\\.(request|collection|folder)$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "elyApiClient.moveNode",
+          "when": "view == elyApiClient.explorer && viewItem =~ /^ely\\.(request|folder|collection)$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "elyApiClient.newRequest",
+          "when": "view == elyApiClient.explorer && viewItem =~ /^ely\\.(collection|folder)$/",
+          "group": "navigation@3"
+        },
+        {
+          "command": "elyApiClient.newFolder",
+          "when": "view == elyApiClient.explorer && viewItem == ely.collection",
+          "group": "navigation@4"
+        },
+        {
+          "command": "elyApiClient.setActiveEnvironment",
+          "when": "view == elyApiClient.explorer && viewItem == ely.environment",
+          "group": "navigation@5"
+        },
+        {
+          "command": "elyApiClient.openWebSocket",
+          "when": "view == elyApiClient.explorer && viewItem == ely.tool"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "elyApiClient.refreshExplorer",
+          "when": "false"
+        },
+        {
+          "command": "elyApiClient.deleteNode",
+          "when": "false"
+        },
+        {
+          "command": "elyApiClient.renameNode",
+          "when": "false"
+        },
+        {
+          "command": "elyApiClient.duplicateNode",
+          "when": "false"
+        },
+        {
+          "command": "elyApiClient.moveNode",
+          "when": "false"
+        },
+        {
+          "command": "elyApiClient.setActiveEnvironment",
+          "when": "false"
+        },
+        {
+          "command": "elyApiClient.clearWebSocketLog",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ElyApiClient",
+      "properties": {
+        "elyApiClient.http.timeout": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 0,
+          "maximum": 600000,
+          "markdownDescription": "Default request timeout in milliseconds. Set to `0` to disable the timeout. Individual requests can override this in the request **Settings** tab."
+        },
+        "elyApiClient.http.followRedirects": {
+          "type": "string",
+          "enum": [
+            "follow",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Follow HTTP redirects automatically.",
+            "Never follow redirects; show the 3xx response instead."
+          ],
+          "default": "follow",
+          "description": "Redirect behaviour for requests."
+        },
+        "elyApiClient.http.maxRedirects": {
+          "type": "number",
+          "default": 5,
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Maximum number of redirects to follow."
+        },
+        "elyApiClient.http.verifyTls": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Verify TLS/SSL certificates. Disabling this is insecure and should only be used for local development."
+        },
+        "elyApiClient.http.maxResponseSize": {
+          "type": "number",
+          "default": 10485760,
+          "minimum": 1024,
+          "description": "Maximum response size in bytes. Responses larger than this are rejected to protect the extension host."
+        },
+        "elyApiClient.response.maxDisplaySize": {
+          "type": "number",
+          "default": 1048576,
+          "minimum": 1024,
+          "description": "Maximum number of response body bytes sent to the UI for display (in bytes). Larger bodies are truncated in the viewer."
+        },
+        "elyApiClient.response.prettyPrint": {
+          "type": "boolean",
+          "default": true,
+          "description": "Pretty-print JSON responses by default."
+        },
+        "elyApiClient.request.defaultMethod": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "HEAD",
+            "OPTIONS"
+          ],
+          "default": "GET",
+          "description": "Default HTTP method for new requests."
+        },
+        "elyApiClient.history.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically record requests in history."
+        },
+        "elyApiClient.history.limit": {
+          "type": "number",
+          "default": 100,
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Maximum number of history entries to keep. Set to 0 to keep everything (bounded by retention)."
+        },
+        "elyApiClient.history.retentionDays": {
+          "type": "number",
+          "default": 30,
+          "minimum": 0,
+          "maximum": 3650,
+          "description": "Delete history entries older than this many days. Set to 0 to keep history indefinitely."
+        },
+        "elyApiClient.history.storeRequestBody": {
+          "type": "boolean",
+          "default": true,
+          "description": "Store request bodies in history so requests can be resent. Response bodies are never stored."
+        },
+        "elyApiClient.history.redactSensitiveHeaders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Redact values of sensitive headers (Authorization, Cookie, API keys) before storing requests in history."
+        },
+        "elyApiClient.security.allowPrivateNetwork": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Allow requests to private, loopback and link-local addresses. Disable this to reduce the risk of SSRF against internal services; `localhost` requests will then be blocked too."
+        },
+        "elyApiClient.security.confirmBeforeDelete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask for confirmation before deleting collections, folders, requests, environments and history."
+        },
+        "elyApiClient.security.maxImportSizeBytes": {
+          "type": "number",
+          "default": 10485760,
+          "minimum": 1024,
+          "description": "Maximum size in bytes of a file that can be imported."
+        },
+        "elyApiClient.testing.timeoutMs": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 100,
+          "maximum": 30000,
+          "description": "Maximum execution time for a request script (pre-request or test) in milliseconds."
+        },
+        "elyApiClient.testing.memoryLimitMb": {
+          "type": "number",
+          "default": 32,
+          "minimum": 8,
+          "maximum": 256,
+          "description": "Memory limit for the script sandbox in megabytes."
+        },
+        "elyApiClient.websocket.maxMessages": {
+          "type": "number",
+          "default": 500,
+          "minimum": 10,
+          "maximum": 5000,
+          "description": "Maximum number of messages kept in the WebSocket log."
+        },
+        "elyApiClient.websocket.handshakeTimeoutMs": {
+          "type": "number",
+          "default": 15000,
+          "minimum": 1000,
+          "maximum": 120000,
+          "description": "WebSocket connection handshake timeout in milliseconds."
+        },
+        "elyApiClient.ui.theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "dark",
+            "light"
+          ],
+          "enumDescriptions": [
+            "Follow the current VS Code theme type.",
+            "Always use the dark EliApiClient theme.",
+            "Always use the light EliApiClient theme."
+          ],
+          "default": "auto",
+          "description": "Theme used by the ElyApiClient interface."
+        },
+        "elyApiClient.storage.scope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "global"
+          ],
+          "enumDescriptions": [
+            "Store collections, environments and history with the current workspace.",
+            "Store collections, environments and history across all workspaces."
+          ],
+          "default": "workspace",
+          "description": "Where ElyApiClient stores your data. Changing this reloads the client."
+        },
+        "elyApiClient.security.trustedHosts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "When private network access is disabled, these hosts remain allowed (for example localhost:8080)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run package",
+    "watch": "tsc -watch -p ./",
+    "package": "node ./scripts/package.mjs",
+    "lint": "eslint src test --max-warnings 0",
+    "typecheck": "tsc -p . --noEmit && tsc -p tsconfig.test.json",
+    "test": "npm run compile && vitest run",
+    "test:watch": "vitest",
+    "harness": "node ./scripts/ui-harness.mjs",
+    "screenshots": "node ./scripts/screenshots.mjs",
+    "vsix": "vsce package",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "acorn": "^8.19.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^20.19.25",
+    "@types/vscode": "^1.90.0",
+    "@types/ws": "^8.18.1",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^3.2.4"
+  }
+}

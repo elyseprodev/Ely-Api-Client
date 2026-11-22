@@ -1,0 +1,31 @@
+# ---- sources and tooling (not shipped) -------------------------------------
+src/**
+test/**
+scripts/**
+docs/**
+.vscode/**
+.vscode-test/**
+.github/**
+coverage/**
+out/**/*.map
+out/testing/**
+tsconfig*.json
+eslint.config.mjs
+vitest.config.ts
+.editorconfig
+.gitignore
+
+# TypeScript sources anywhere in the package
+**/*.ts
+!node_modules/**/*.d.ts
+
+# Dev dependencies are not bundled. Every *runtime* dependency in package.json must be listed here
+# explicitly, otherwise vsce drops it and the extension crashes on activation. `ws` (WebSocket) and
+# `acorn` (test-script parser) are both required at runtime.
+node_modules/**
+!node_modules/ws/**
+!node_modules/acorn/**
+!node_modules/@types/**
+
+# ---- shipped runtime assets ------------------------------------------------
+# media/webview/**, media/styles/main.css, media/scripts/*.js and media/icons/* are kept.
