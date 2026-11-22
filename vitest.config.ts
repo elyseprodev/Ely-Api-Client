@@ -3,6 +3,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
+    // Script assertions run in a Worker built from out/, which a fresh clone does not have.
+    // The setup compiles it once so `npx vitest run` works without a separate build step.
+    globalSetup: ['test/setup/buildWorker.ts'],
     environment: 'node',
     testTimeout: 20000,
     hookTimeout: 20000,
