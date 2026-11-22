@@ -2,9 +2,9 @@
 
 # ElyApiClient
 
-<img src="docs/badges/free-open-source.svg" alt="Free &amp; Open Source" height="30" />
-<img src="docs/badges/no-payment.svg" alt="No Payment Required" height="30" />
-<img src="docs/badges/works-in-vscode.svg" alt="Works in VS Code" height="30" />
+<img src="docs/badges/free-open-source.png" alt="Free &amp; Open Source" height="30" />
+<img src="docs/badges/no-payment.png" alt="No Payment Required" height="30" />
+<img src="docs/badges/works-in-vscode.png" alt="Works in VS Code" height="30" />
 
 **Test APIs. Debug Faster. Build Better.**
 
