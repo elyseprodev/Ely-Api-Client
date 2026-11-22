@@ -482,7 +482,8 @@
     "test:watch": "vitest",
     "harness": "node ./scripts/ui-harness.mjs",
     "screenshots": "node ./scripts/screenshots.mjs",
-    "vsix": "vsce package"
+    "vsix": "vsce package",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "acorn": "^8.19.0",

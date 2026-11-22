@@ -73,10 +73,15 @@ describe('vsix packaging', () => {
 
   it('points main at the compiled entry point', () => {
     expect(pkg.main).toBe('./out/extension.js');
-    // The compiled output is produced by `npm run compile`; the source must exist for that to work.
+    // The source must exist for `npm run compile` to produce the entry point.
     expect(existsSync(join(root, 'src', 'extension.ts')), 'src/extension.ts must exist').toBe(true);
+
     const compiled = pkg.main!.replace(/^\.\//, '');
-    expect(existsSync(join(root, compiled)), `${compiled} is missing - run npm run compile`).toBe(true);
+    expect(
+      existsSync(join(root, compiled)),
+      `${compiled} is missing. The extension host loads this file, so the package would not start.\n` +
+        'Run `npm run compile` (or `npm test`, which compiles first) and re-run the suite.'
+    ).toBe(true);
   });
 
   it('references an icon that exists', () => {
