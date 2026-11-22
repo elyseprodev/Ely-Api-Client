@@ -10,7 +10,8 @@ afterAll(async () => { await api.close(); });
 describe('method handling', () => {
   it('posts and gets 201', async () => {
     const client = createTestClient();
-    const request = createRequest({ url: `${api.url}/api/v1/products`, method: 'POST', name: 'create', body: { mode: 'json', raw: '{"name":"Widget"}', form: [], urlencoded: [] } as any });
+    const request = createRequest({ url: `${api.url}/api/v1/products`, method: 'POST', name: 'create' });
+    request.body = { type: 'json', raw: '{"name":"Widget"}', form: [] };
     await client.send({ type: 'request:send', requestId: request.id, payload: { request } });
     const finished = await client.waitFor('request:finished');
     const result = finished.payload as any;

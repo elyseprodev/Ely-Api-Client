@@ -62,7 +62,7 @@ describe('HTTP execution', () => {
   it('resolves environment variables in URL and headers', async () => {
     const environment = client.core.environments.create('E2E');
     await client.core.environments.saveVariables(environment.id, [
-      { id: 'v1', key: 'baseUrl', value: api.url, enabled: true, secret: false, description: '' }
+      { id: 'v1', key: 'baseUrl', value: api.url, enabled: true, secret: false }
     ]);
     client.core.environments.setActive(environment.id);
     const request = createRequest({ url: '{{baseUrl}}/api/v1/products' });
