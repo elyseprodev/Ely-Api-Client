@@ -19,9 +19,12 @@ vitest.config.ts
 **/*.ts
 !node_modules/**/*.d.ts
 
-# Dev dependencies are not bundled; `ws` is the only runtime dependency.
+# Dev dependencies are not bundled. Every *runtime* dependency in package.json must be listed here
+# explicitly, otherwise vsce drops it and the extension crashes on activation. `ws` (WebSocket) and
+# `acorn` (test-script parser) are both required at runtime.
 node_modules/**
 !node_modules/ws/**
+!node_modules/acorn/**
 !node_modules/@types/**
 
 # ---- shipped runtime assets ------------------------------------------------
