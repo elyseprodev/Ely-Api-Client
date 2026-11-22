@@ -1,4 +1,10 @@
+<div align="center">
+
 # ElyApiClient
+
+<img src="docs/badges/free-open-source.svg" alt="Free &amp; Open Source" height="30" />
+<img src="docs/badges/no-payment.svg" alt="No Payment Required" height="30" />
+<img src="docs/badges/works-in-vscode.svg" alt="Works in VS Code" height="30" />
 
 **Test APIs. Debug Faster. Build Better.**
 
@@ -7,6 +13,8 @@ responses, organise collections, manage environments, write automated tests and 
 messages — without leaving your editor, and without an account or a cloud sync.
 
 ![Main dashboard and sidebar](docs/screenshots/01-main-dashboard.png)
+
+</div>
 
 ## Why ElyApiClient
 
