@@ -294,3 +294,6 @@ The following flows are covered by automated tests and were verified against the
 | New request → send → close tab → welcome state | UI harness (manual + screenshots) |
 | WebSocket connect, echo round-trip, log | UI harness (manual + screenshots) |
 | Settings persistence from the dialog | UI harness (manual) |
+| Bearer, Basic, API-key (header and query) auth | `test/integration/auth.test.ts` |
+| OAuth2 client-credentials exchanged exactly once | `test/integration/auth.test.ts` |
+| Failed token exchange reported, request not sent | `test/integration/auth.test.ts` |

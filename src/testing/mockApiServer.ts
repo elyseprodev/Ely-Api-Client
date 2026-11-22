@@ -154,7 +154,12 @@ export async function startMockApi(options: MockOptions = {}): Promise<MockApi> 
       return;
     }
     if (path === '/echo') {
-      json(res, 200, { method, url: req.url, headers: req.headers, body: safeJson(body) ?? body });
+      // Mirrors the request back so tests can assert on exactly what went over the wire.
+      const query: Record<string, string> = {};
+      for (const [key, value] of url.searchParams.entries()) {
+        query[key] = value;
+      }
+      json(res, 200, { method, url: req.url, query, headers: req.headers, body: safeJson(body) ?? body });
       return;
     }
     if (path === '/slow' || path === '/api/v1/slow') {
