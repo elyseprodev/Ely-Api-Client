@@ -813,6 +813,31 @@ textarea {
   margin-top: 10px;
 }
 
+/* Footer actions of the explorer: the reference design surfaces "New Collection" and "New Folder"
+   as buttons instead of hiding them in the context menu. */
+.sidebar-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.sidebar-footer .button {
+  justify-content: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+
+.sidebar-footer .button svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
 .sidebar-hint {
   margin: 8px;
   padding: 9px 11px;
@@ -3267,15 +3292,29 @@ mark.hit.is-current {
   flex: 1;
 }
 
-/* While the environment manager is open it takes the place of the explorer. `.workspace` is a
-   two-column grid, so the sidebar must be removed from the layout *and* its grid track collapsed —
-   otherwise the manager inherits the narrow column. */
-body.manager-mode .sidebar {
+/* While the environment manager is open it takes the place of the explorer, which would otherwise
+   repeat the environment list. The explorer collapses to an icon rail that keeps every section
+   reachable — hiding it outright stranded the user in the manager with no way back. */
+body.manager-mode .workspace {
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+
+body.manager-mode .sidebar-nav {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  padding: 8px 6px;
+}
+
+body.manager-mode .sidebar-tab {
+  padding: 9px 0;
+}
+
+body.manager-mode .sidebar-tab span {
   display: none;
 }
 
-body.manager-mode .workspace {
-  grid-template-columns: minmax(0, 1fr);
+body.manager-mode .sidebar-body {
+  display: none;
 }
 
 /* The manager is the only flex child of `.main` while active, so it must flex to fill it. */

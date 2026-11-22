@@ -74,7 +74,9 @@ webview never receives a stored secret back.
 ### 6. Collections and folders
 
 Nested collections, folders and requests with drag-free organisation, inline rename, duplicate,
-move, delete (with confirmation), and search across the tree.
+move, delete (with confirmation), and search across the tree. The footer keeps **+ New Collection**
+and **+ New Folder** one click away — the folder lands in whichever collection or folder is selected,
+so organising never means hunting through a context menu.
 
 ![Collections and folders](docs/screenshots/06-collections.png)
 
@@ -88,7 +90,8 @@ A master-detail editor: environments on the left, the selected environment's var
 with a live `{{variable}}` preview, per-variable secret flags and "Set active" / "Duplicate" /
 "Delete" actions. Edits are held as a draft until **Save**, so you can't lose work by switching
 environments, and **Revert** restores the stored values. Quick switching is also available from the
-title bar or `Ctrl+Alt+V`.
+title bar or `Ctrl+Alt+V`. While the manager is open the explorer collapses to a slim icon rail, so
+every other section stays one click away instead of the manager trapping you in its own view.
 
 ![Environment manager](docs/screenshots/07-environments.png)
 

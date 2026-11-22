@@ -571,6 +571,11 @@
     state.activeId = id;
     state.selection = { type: 'request', id };
     renderTabs();
+    // The environment manager replaces the whole pane; opening a request must bring the editor
+    // back into view instead of leaving the user on the manager.
+    if (state.section === 'environments' || state.websocketOpen) {
+      selectSection('collections');
+    }
     renderWorkspace();
     renderTree();
   }
@@ -1867,6 +1872,31 @@
     });
   }
 
+  /**
+   * Creates a folder in the collection that owns the current selection, so the footer button needs
+   * no extra picker when the user already has a collection in focus.
+   */
+  function createNewFolderFromFooter() {
+    const collections = state.snapshot.collections || [];
+    if (!collections.length) {
+      createCollection();
+      return;
+    }
+    const selection = state.selection || {};
+    let collectionId = null;
+    if (selection.type === 'collection') collectionId = selection.id;
+    if (selection.type === 'folder') {
+      const folder = state.snapshot.folders.find((candidate) => candidate.id === selection.id);
+      if (folder) collectionId = folder.collectionId;
+    }
+    if (selection.type === 'request') {
+      const request = requestById(selection.id);
+      if (request && request.collectionId) collectionId = request.collectionId;
+    }
+    if (!collectionId) collectionId = collections[0].id;
+    createFolder(collectionId, null);
+  }
+
   function createFolder(collectionId, parentFolderId) {
     UI.promptDialog({ title: 'New folder', label: 'Folder name', value: 'New Folder' }).then((name) => {
       if (name) post({ type: 'folder:create', payload: { collectionId, parentFolderId, name } });
@@ -2694,31 +2724,35 @@
       });
     }
     for (const button of $$('.sidebar-tab')) {
-      button.addEventListener('click', () => {
-        state.section = button.dataset.section;
-        Ely.store.set({ section: state.section });
-        for (const tab of $$('.sidebar-tab')) {
-          tab.classList.toggle('is-active', tab === button);
-          tab.setAttribute('aria-selected', tab === button ? 'true' : 'false');
-        }
-        for (const panel of $$('.sidebar-panel')) {
-          panel.hidden = panel.dataset.panel !== state.section;
-        }
-        // The manager owns the whole pane (it renders its own environment list), so the explorer
-        // column is collapsed while it is active.
-        document.body.classList.toggle('manager-mode', state.section === 'environments');
-        if (state.section === 'environments') {
-          renderWorkspace();
-          renderEnvironmentManager();
-        }
-        if (state.section === 'websocket') {
-          openWebSocketWorkspace();
-        } else if (state.websocketOpen) {
-          // Switching to any other sidebar section must leave the WebSocket workspace, otherwise
-          // its UI stays on screen and the request editor is unreachable.
-          closeWebSocketWorkspace();
-        }
-      });
+      button.addEventListener('click', () => selectSection(button.dataset.section));
+    }
+  }
+
+  /**
+   * Activates a sidebar section and the workspace it owns. Every section change re-renders the main
+   * pane so leaving the environment manager can never leave it on screen.
+   */
+  function selectSection(section) {
+    state.section = section;
+    Ely.store.set({ section });
+    for (const tab of $$('.sidebar-tab')) {
+      const isActive = tab.dataset.section === section;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    }
+    for (const panel of $$('.sidebar-panel')) {
+      panel.hidden = panel.dataset.panel !== section;
+    }
+    // In manager mode the explorer collapses to an icon rail (see `body.manager-mode`), so the
+    // grid track order must stay sidebar-then-main.
+    document.body.classList.toggle('manager-mode', section === 'environments');
+    renderWorkspace();
+    if (section === 'websocket') {
+      openWebSocketWorkspace();
+    } else if (state.websocketOpen) {
+      // Switching to any other sidebar section must leave the WebSocket workspace, otherwise its
+      // UI stays on screen and the request editor is unreachable.
+      closeWebSocketWorkspace();
     }
   }
 
@@ -2797,6 +2831,8 @@
 
   function bindTopbar() {
     $('#btn-new-collection').addEventListener('click', createCollection);
+    $('#btn-new-collection-footer').addEventListener('click', createCollection);
+    $('#btn-new-folder-footer').addEventListener('click', createNewFolderFromFooter);
     $('#btn-new-environment').addEventListener('click', createEnvironment);
     $('#btn-import').addEventListener('click', () => {
       UI.showMenu($('#btn-import'), [
