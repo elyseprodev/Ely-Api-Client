@@ -88,7 +88,8 @@ const SHOTS = [
     title: 'Environment manager',
     steps: async (page) => {
       await page.click('.sidebar-tab[data-section="environments"]');
-      await page.waitForTimeout(300);
+      // Open the manager for the active environment so the editor pane is populated.
+      await page.waitForTimeout(500);
     }
   },
   {
@@ -109,6 +110,13 @@ const SHOTS = [
     steps: async (page) => {
       await page.click('.sidebar-tab[data-section="websocket"]');
       await page.waitForTimeout(400);
+      // The harness host keeps a live socket between shots (the theme loop reuses one host), so a
+      // previous run may have left it connected; disconnect first for a deterministic screenshot.
+      const disconnect = page.locator('#ws-disconnect');
+      if (await disconnect.isVisible().catch(() => false)) {
+        await disconnect.click();
+        await page.waitForTimeout(500);
+      }
       await page.fill('#ws-url', process.env.ELY_WS_URL || 'ws://127.0.0.1:9100/ws');
       await page.click('#ws-connect');
       await page.waitForTimeout(700);
@@ -295,7 +303,12 @@ async function main() {
         });
         try {
           await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
-          await page.evaluate((value) => document.body.setAttribute('data-theme', value), theme);
+          // Set the app's own theme state (not just the attribute): snapshot updates re-run
+          // `applyTheme()`, which would otherwise overwrite a directly-set attribute.
+          await page.evaluate((value) => {
+            window.ElyApp.state.theme = value;
+            document.body.setAttribute('data-theme', value);
+          }, theme);
           await page.waitForTimeout(1200);
           await shot.steps(page);
           const file = `${shot.id}-${shot.slug}${theme === 'dark' ? '-dark' : ''}.png`;

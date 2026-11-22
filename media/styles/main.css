@@ -2951,3 +2951,336 @@ mark.hit.is-current {
 .settings-row .settings-checkbox {
   justify-self: end;
 }
+
+/* --------------------------- environment manager --------------------------- */
+
+.environment-workspace {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  background: var(--bg);
+}
+
+.env-manager {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.env-manager-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-sidebar);
+}
+
+.env-manager-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.env-manager-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.env-manager-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.env-manager-item {
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.env-manager-item:hover {
+  background: var(--bg-hover);
+}
+
+.env-manager-item.is-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--text-strong);
+}
+
+.env-manager-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-manager-item-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+.env-active-pill {
+  padding: 1px 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: 999px;
+}
+
+.env-dot[data-tone='active'] {
+  background: var(--success);
+}
+
+.env-dot[data-tone='idle'] {
+  background: var(--text-muted);
+}
+
+.env-manager-detail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.env-manager-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.env-manager-detail-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.env-manager-subtitle {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.env-manager-detail-actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+.env-manager-split {
+  display: grid;
+  grid-template-columns: 1fr 292px;
+  gap: 20px;
+  padding: 16px 20px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.env-manager-vars {
+  min-width: 0;
+}
+
+.env-manager-vars-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.env-manager-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.env-editor-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.env-editor-row {
+  display: grid;
+  grid-template-columns: 22px minmax(120px, 1fr) minmax(140px, 1.4fr) auto 26px;
+  align-items: center;
+  gap: 8px;
+}
+
+.env-key-input,
+.env-value-input {
+  width: 100%;
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.env-key-input {
+  font-family: var(--font-mono);
+}
+
+.env-key-input:focus,
+.env-value-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.env-secret-button {
+  padding: 4px 9px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.env-secret-button.is-on {
+  color: var(--warning);
+  border-color: var(--warning-border, var(--border));
+  background: var(--warning-soft, var(--bg-elevated));
+}
+
+.env-manager-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.env-aside-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.env-aside-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.env-aside-hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-subtle);
+}
+
+.env-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.env-preview-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  font-size: 11px;
+}
+
+.env-preview-row code {
+  font-family: var(--font-mono);
+  color: var(--accent-strong);
+  flex: none;
+}
+
+.env-preview-value {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-manager-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.env-manager-status {
+  font-size: 11.5px;
+  color: var(--text-subtle);
+}
+
+.env-manager-status.is-dirty {
+  color: var(--warning, var(--accent));
+}
+
+.env-manager-footer .spacer {
+  flex: 1;
+}
+
+/* While the environment manager is open it takes the place of the explorer. `.workspace` is a
+   two-column grid, so the sidebar must be removed from the layout *and* its grid track collapsed —
+   otherwise the manager inherits the narrow column. */
+body.manager-mode .sidebar {
+  display: none;
+}
+
+body.manager-mode .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The manager is the only flex child of `.main` while active, so it must flex to fill it. */
+body.manager-mode .environment-workspace {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}

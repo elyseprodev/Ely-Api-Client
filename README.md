@@ -84,8 +84,11 @@ move, delete (with confirmation), and search across the tree.
 
 ### 7. Environment manager
 
-Named environments with variables, per-variable secret flags and quick switching from the title bar
-or `Ctrl+Alt+V`.
+A master-detail editor: environments on the left, the selected environment's variables on the right,
+with a live `{{variable}}` preview, per-variable secret flags and "Set active" / "Duplicate" /
+"Delete" actions. Edits are held as a draft until **Save**, so you can't lose work by switching
+environments, and **Revert** restores the stored values. Quick switching is also available from the
+title bar or `Ctrl+Alt+V`.
 
 ![Environment manager](docs/screenshots/07-environments.png)
 

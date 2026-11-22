@@ -592,6 +592,17 @@
     const welcome = $('#welcome');
     const workspace = $('#request-workspace');
     const websocket = $('#websocket-workspace');
+    const environments = $('#environment-workspace');
+    // The environment manager owns the main pane while its rail section is selected.
+    const showEnvironments = state.section === 'environments' && !state.websocketOpen;
+    if (environments) environments.hidden = !showEnvironments;
+    if (showEnvironments) {
+      welcome.hidden = true;
+      workspace.hidden = true;
+      websocket.hidden = true;
+      renderEnvironmentManager();
+      return;
+    }
     if (state.websocketOpen) {
       welcome.hidden = true;
       workspace.hidden = true;
@@ -1921,6 +1932,346 @@
   /* -------------------------- environment defaults ---------------------- */
 
 
+
+  /* ------------------------- environment manager ------------------------- */
+
+  /**
+   * Persistent master-detail environment editor shown by the Environments rail.
+   *
+   * Edits are made on a local draft and only written when Save is pressed, so switching between
+   * environments or accidentally navigating away cannot destroy unsaved work (a dirty guard warns
+   * before switching). Secret values are never sent back by the host: a masked placeholder with
+   * `hasValue` marks a stored secret, and leaving the field untouched keeps it.
+   */
+  const envEditor = {
+    id: null,
+    draft: null,
+    dirty: false
+  };
+
+  const SECRET_MASK = '••••••••';
+
+  function newEnvRow(seed = {}) {
+    return {
+      id: seed.id || `var-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      key: seed.key || '',
+      value: seed.value || '',
+      enabled: seed.enabled !== false,
+      secret: Boolean(seed.secret),
+      hasValue: Boolean(seed.hasValue)
+    };
+  }
+
+  function cloneVariables(environment) {
+    const rows = (environment.variables || []).map((variable) => newEnvRow(variable));
+    return rows.length ? rows : [newEnvRow()];
+  }
+
+  function loadEnvironmentDraft(id, { force = false } = {}) {
+    const environment = state.snapshot.environments.find((candidate) => candidate.id === id);
+    if (!environment) {
+      envEditor.id = null;
+      envEditor.draft = null;
+      envEditor.dirty = false;
+      renderEnvironmentManager();
+      return;
+    }
+    if (!force && envEditor.id === id && envEditor.draft) {
+      return;
+    }
+    if (!force && envEditor.dirty) {
+      const proceed = window.confirm('Discard unsaved variable changes?');
+      if (!proceed) {
+        renderEnvironmentManager();
+        return;
+      }
+    }
+    envEditor.id = id;
+    envEditor.draft = cloneVariables(environment);
+    envEditor.dirty = false;
+    renderEnvironmentManager();
+  }
+
+  function markEnvironmentDirty() {
+    envEditor.dirty = true;
+    renderEnvironmentFooter();
+  }
+
+  function renderEnvironmentManager() {
+    const items = $('#env-manager-items');
+    if (!items) return;
+    clear(items);
+    const environments = state.snapshot.environments;
+    const activeId = state.snapshot.activeEnvironmentId;
+
+    if (!envEditor.id && environments.length) {
+      // Open the active environment (or the first) so the editor is never empty on arrival.
+      loadEnvironmentDraft(activeId || environments[0].id, { force: true });
+      return;
+    }
+
+    for (const environment of environments) {
+      const isSelected = environment.id === envEditor.id;
+      const isActive = environment.id === activeId;
+      items.appendChild(
+        el(
+          'button',
+          {
+            class: `env-manager-item ${isSelected ? 'is-selected' : ''}`,
+            type: 'button',
+            role: 'option',
+            'aria-selected': isSelected ? 'true' : 'false',
+            dataset: { id: environment.id },
+            on: { click: () => loadEnvironmentDraft(environment.id) }
+          },
+          el('span', { class: 'env-dot', dataset: { tone: isActive ? 'active' : 'idle' }, 'aria-hidden': 'true' }),
+          el('span', { class: 'env-manager-item-name' }, environment.name),
+          el('span', { class: 'env-manager-item-count' }, String((environment.variables || []).length)),
+          isActive ? el('span', { class: 'env-active-pill' }, 'Active') : null
+        )
+      );
+    }
+
+    const environment = environments.find((candidate) => candidate.id === envEditor.id);
+    const nameInput = $('#env-editor-name');
+    const subtitle = $('#env-editor-subtitle');
+    if (nameInput) nameInput.textContent = environment ? environment.name : 'Environment';
+    if (subtitle) {
+      subtitle.textContent = environment
+        ? `${environment.id === activeId ? 'Active environment' : 'Not active'} · ${(environment.variables || []).length} variable(s)`
+        : 'Select an environment';
+    }
+    const rename = $('#env-editor-rename');
+    if (rename) {
+      rename.value = environment ? environment.name : '';
+      rename.disabled = !environment;
+    }
+    $('#env-activate').disabled = !environment || environment.id === activeId;
+    $('#env-duplicate').disabled = !environment;
+    $('#env-delete').disabled = !environment;
+    $('#env-add-variable').disabled = !environment;
+    $('#env-editor-save').disabled = !environment || !envEditor.dirty;
+    $('#env-editor-revert').disabled = !environment || !envEditor.dirty;
+
+    if (!environment) {
+      const rowsHost = $('#env-editor-rows');
+      if (rowsHost) {
+        clear(rowsHost);
+        rowsHost.appendChild(el('div', { class: 'list-empty' }, el('p', null, 'No environment selected.'), el('p', null, 'Create one to reuse base URLs, tokens and constants.')));
+      }
+      renderEnvironmentFooter();
+      return;
+    }
+
+    renderEnvironmentRows();
+    renderEnvironmentPreview();
+    renderEnvironmentFooter();
+  }
+
+  function renderEnvironmentRows() {
+    const host = $('#env-editor-rows');
+    if (!host || !envEditor.draft) return;
+    clear(host);
+    const rows = envEditor.draft;
+    const count = $('#env-editor-count');
+    if (count) count.textContent = String(rows.filter((row) => row.key.trim()).length);
+
+    rows.forEach((row, index) => {
+      const isStoredSecret = row.secret && row.hasValue && !row.value;
+      const valueInput = el('input', {
+        class: 'env-value-input',
+        type: row.secret ? 'password' : 'text',
+        value: isStoredSecret ? '' : row.value,
+        placeholder: isStoredSecret ? `${SECRET_MASK} stored securely` : '',
+        spellcheck: false,
+        'aria-label': `Value for ${row.key || 'variable'}`,
+        on: {
+          input: (event) => {
+            row.value = event.target.value;
+            row.hasValue = false;
+            markEnvironmentDirty();
+            renderEnvironmentPreview();
+          }
+        }
+      });
+      if (isStoredSecret && row.value) {
+        valueInput.placeholder = `${SECRET_MASK} stored securely`;
+      }
+      host.appendChild(
+        el(
+          'div',
+          { class: 'env-editor-row' },
+          el('input', {
+            class: 'checkbox',
+            type: 'checkbox',
+            checked: row.enabled,
+            'aria-label': 'Include this variable',
+            on: {
+              change: (event) => {
+                row.enabled = event.target.checked;
+                markEnvironmentDirty();
+                renderEnvironmentPreview();
+              }
+            }
+          }),
+          el('input', {
+            class: 'env-key-input',
+            type: 'text',
+            value: row.key,
+            placeholder: 'variableName',
+            spellcheck: false,
+            'aria-label': 'Variable name',
+            on: {
+              input: (event) => {
+                row.key = event.target.value;
+                markEnvironmentDirty();
+                renderEnvironmentPreview();
+              }
+            }
+          }),
+          valueInput,
+          el(
+            'button',
+            {
+              class: `env-secret-button ${row.secret ? 'is-on' : ''}`,
+              type: 'button',
+              title: row.secret ? 'Stored in the OS keychain — click to make plain' : 'Click to store in the OS keychain',
+              'aria-pressed': row.secret ? 'true' : 'false',
+              on: {
+                click: () => {
+                  row.secret = !row.secret;
+                  markEnvironmentDirty();
+                  renderEnvironmentRows();
+                }
+              }
+            },
+            row.secret ? 'secret' : 'plain'
+          ),
+          el(
+            'button',
+            {
+              class: 'row-remove',
+              type: 'button',
+              title: 'Remove variable',
+              'aria-label': 'Remove variable',
+              on: {
+                click: () => {
+                  if (row.id && row.secret && row.hasValue) {
+                    post({ type: 'environment:clear-secret', payload: { environmentId: envEditor.id, variableId: row.id } });
+                  }
+                  rows.splice(index, 1);
+                  if (!rows.length) rows.push(newEnvRow());
+                  envEditor.dirty = true;
+                  renderEnvironmentRows();
+                  renderEnvironmentPreview();
+                  renderEnvironmentFooter();
+                }
+              }
+            },
+            '✕'
+          )
+        )
+      );
+    });
+  }
+
+  function renderEnvironmentPreview() {
+    const host = $('#env-editor-preview');
+    if (!host) return;
+    clear(host);
+    const rows = (envEditor.draft || []).filter((row) => row.enabled && row.key.trim());
+    host.appendChild(el('span', { class: 'env-aside-label' }, 'Preview'));
+    if (!rows.length) {
+      host.appendChild(el('p', { class: 'env-aside-hint' }, 'Add a variable to preview it.'));
+      return;
+    }
+    const list = el('div', { class: 'env-preview-list' });
+    for (const row of rows.slice(0, 6)) {
+      list.appendChild(
+        el(
+          'div',
+          { class: 'env-preview-row' },
+          el('code', null, `{{${row.key}}}`),
+          el('span', { class: 'env-preview-value' }, row.secret ? SECRET_MASK : row.value || '(empty)')
+        )
+      );
+    }
+    host.appendChild(list);
+  }
+
+  function renderEnvironmentFooter() {
+    const status = $('#env-editor-status');
+    if (status) {
+      status.textContent = envEditor.dirty ? 'Unsaved changes' : envEditor.id ? 'All changes saved' : '';
+      status.classList.toggle('is-dirty', envEditor.dirty);
+    }
+    const save = $('#env-editor-save');
+    if (save) save.disabled = !envEditor.id || !envEditor.dirty;
+    const revert = $('#env-editor-revert');
+    if (revert) revert.disabled = !envEditor.id || !envEditor.dirty;
+  }
+
+  function saveEnvironmentDraft() {
+    if (!envEditor.id || !envEditor.draft) return;
+    const variables = envEditor.draft
+      .filter((row) => row.key.trim())
+      .map((row) => ({
+        id: row.id,
+        key: row.key.trim(),
+        value: row.value,
+        enabled: row.enabled,
+        secret: row.secret,
+        hasValue: row.hasValue && row.secret
+      }));
+    post({ type: 'environment:save-variables', payload: { id: envEditor.id, variables } });
+    envEditor.dirty = false;
+    renderEnvironmentFooter();
+    UI.toast(`Saved ${variables.length} variable(s)`, 'success');
+  }
+
+  function bindEnvironmentManager() {
+    const on = (selector, handler) => {
+      const node = $(selector);
+      if (node) node.addEventListener('click', handler);
+    };
+    on('#env-new', () => post({ type: 'environment:create', payload: { name: `Environment ${state.snapshot.environments.length + 1}` } }));
+    on('#env-add-variable', () => {
+      if (!envEditor.draft) return;
+      envEditor.draft.push(newEnvRow());
+      envEditor.dirty = true;
+      renderEnvironmentRows();
+      renderEnvironmentPreview();
+      renderEnvironmentFooter();
+    });
+    on('#env-editor-save', saveEnvironmentDraft);
+    on('#env-editor-revert', () => loadEnvironmentDraft(envEditor.id, { force: true }));
+    on('#env-activate', () => {
+      if (envEditor.id) post({ type: 'environment:set-active', payload: { id: envEditor.id } });
+    });
+    on('#env-duplicate', () => {
+      if (envEditor.id) post({ type: 'environment:duplicate', payload: { id: envEditor.id } });
+    });
+    on('#env-delete', () => {
+      if (envEditor.id) post({ type: 'environment:delete', payload: { id: envEditor.id } });
+    });
+    const rename = $('#env-editor-rename');
+    if (rename) {
+      rename.addEventListener('input', () => {
+        envEditor.dirty = true;
+        envEditor.pendingName = rename.value;
+        const title = $('#env-editor-name');
+        if (title) title.textContent = rename.value || 'Environment';
+        renderEnvironmentFooter();
+      });
+      rename.addEventListener('change', () => {
+        // Rename commits immediately so the list stays in sync; variables still need Save.
+        if (envEditor.id && rename.value.trim()) {
+          post({ type: 'environment:update', payload: { id: envEditor.id, name: rename.value.trim() } });
+        }
+      });
+    }
+  }
+
   /* ------------------------------- settings ------------------------------- */
 
   /**
@@ -2353,6 +2704,13 @@
         for (const panel of $$('.sidebar-panel')) {
           panel.hidden = panel.dataset.panel !== state.section;
         }
+        // The manager owns the whole pane (it renders its own environment list), so the explorer
+        // column is collapsed while it is active.
+        document.body.classList.toggle('manager-mode', state.section === 'environments');
+        if (state.section === 'environments') {
+          renderWorkspace();
+          renderEnvironmentManager();
+        }
         if (state.section === 'websocket') {
           openWebSocketWorkspace();
         } else if (state.websocketOpen) {
@@ -2448,6 +2806,7 @@
       ], { alignRight: true });
     });
     $('#btn-settings').addEventListener('click', () => openSettings());
+    bindEnvironmentManager();
     $('#btn-theme').addEventListener('click', () => {
       const current = document.body.dataset.theme;
       state.theme = current === 'dark' ? 'light' : 'dark';

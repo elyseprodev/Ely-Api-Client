@@ -310,6 +310,61 @@
               </form>
             </div>
           </section>
+
+          <!-- Environment manager: persistent master-detail editor (Environments rail). -->
+          <section id="environment-workspace" class="environment-workspace" aria-label="Environment manager" hidden>
+            <div class="env-manager">
+              <aside class="env-manager-list" aria-label="Environments">
+                <header class="env-manager-head">
+                  <span class="env-manager-title">Environments</span>
+                  <button id="env-new" class="icon-button small" type="button" title="New environment" aria-label="New environment">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  </button>
+                </header>
+                <div id="env-manager-items" class="env-manager-items" role="listbox" aria-label="Environment list"></div>
+              </aside>
+              <div class="env-manager-detail">
+                <header class="env-manager-detail-head">
+                  <div class="env-manager-detail-title">
+                    <h2 id="env-editor-name">Environment</h2>
+                    <span id="env-editor-subtitle" class="env-manager-subtitle">Select an environment</span>
+                  </div>
+                  <div class="env-manager-detail-actions">
+                    <button id="env-activate" class="button ghost small" type="button">Set active</button>
+                    <button id="env-duplicate" class="button ghost small" type="button">Duplicate</button>
+                    <button id="env-delete" class="button ghost small danger-text" type="button">Delete</button>
+                  </div>
+                </header>
+                <div class="env-manager-split">
+                  <div class="env-manager-vars">
+                    <div class="env-manager-vars-head">
+                      <span class="env-manager-label">Variables</span>
+                      <span id="env-editor-count" class="badge">0</span>
+                    </div>
+                    <div id="env-editor-rows" class="env-editor-rows"></div>
+                    <button id="env-add-variable" class="add-row-button" type="button">+ Add variable</button>
+                  </div>
+                  <aside class="env-manager-aside" aria-label="Environment details">
+                    <div class="env-aside-block">
+                      <label class="env-aside-label" for="env-editor-rename">Name</label>
+                      <input id="env-editor-rename" class="settings-input" type="text" spellcheck="false" aria-label="Environment name" />
+                    </div>
+                    <div class="env-aside-block">
+                      <span class="env-aside-label">Storage</span>
+                      <p class="env-aside-hint">Variables are stored with this workspace. Values flagged as secrets live in the OS keychain and are never exported.</p>
+                    </div>
+                    <div id="env-editor-preview" class="env-aside-block env-preview"></div>
+                  </aside>
+                </div>
+                <footer class="env-manager-footer">
+                  <span id="env-editor-status" class="env-manager-status"></span>
+                  <div class="spacer"></div>
+                  <button id="env-editor-revert" class="button ghost" type="button">Revert</button>
+                  <button id="env-editor-save" class="button primary" type="button">Save</button>
+                </footer>
+              </div>
+            </div>
+          </section>
         </main>
       </div>
 
